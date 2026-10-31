@@ -21,6 +21,7 @@ Add new questions at the top. When one is answered, move it to the "Answered" se
 | 8 | What is the unit of per-target effect values (seconds? fraction? damage?) | Weighting utility effects | Effect start and end times plus the coding agent's decoding | Coding agent |
 | 9 | Can the Drive connector create binary files? | Whether Claude can write shards back | A test write | Claude |
 | 13 | Does the agent list miss one agent? Outlets number Veto 29th and Hush 31st, but lists show 28 agents before Miks | A complete class table | An official agent list | Reference table |
+| 14 | Which route is the main one for utility events: the bootstrap CSV tables or our parquet shards? | Two definitions of the same tables | User and coding agent decide; see [[Bootstrap Package]] | User |
 | 10 | Who are the 10 players across matches? Is `Subject` UUID stable between matches? | Player baselines | Two matches with the same player | Needs more replays |
 | 11 | Why did the stats layer fill defaults instead of decoded values? | No trustworthy tables from the pipeline | Resend the brief; require acceptance checks on the Swiftplay sample | Coding agent |
 
