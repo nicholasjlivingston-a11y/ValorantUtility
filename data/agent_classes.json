@@ -47,6 +47,11 @@
       "status": "confirmed",
       "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
     },
+    "Hush": {
+      "class": "Duelist",
+      "status": "confirmed",
+      "evidence": "Dexerto reveal article calls Hush a Duelist, release Oct 27 2026; Sheep Esports headline 'Agent 31 Hush as Valorant's new Duelist'; games.gg headline for Patch 13.09 (checked 2026-10-30). Added in patch 13.09, so it is not in build 13.08 replays"
+    },
     "Sova": {
       "class": "Initiator",
       "status": "confirmed",
@@ -112,6 +117,11 @@
       "status": "confirmed",
       "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
     },
+    "Miks": {
+      "class": "Controller",
+      "status": "confirmed",
+      "evidence": "GosuGamers news 78131 (Miks reveal) calls Miks the newest Controller in VALORANT (checked 2026-10-30). Not yet on the wiki list pages checked"
+    },
     "Cypher": {
       "class": "Sentinel",
       "status": "confirmed",
@@ -146,11 +156,6 @@
       "class": "Sentinel",
       "status": "confirmed",
       "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30); GosuGamers headline 'Veto joins VALORANT as the newest Sentinel agent'"
-    },
-    "Miks": {
-      "class": "Controller",
-      "status": "confirmed",
-      "evidence": "GosuGamers news 78131 (Miks reveal) calls Miks the newest Controller in VALORANT (checked 2026-10-30). Not yet on the wiki list pages checked"
     }
   }
 }

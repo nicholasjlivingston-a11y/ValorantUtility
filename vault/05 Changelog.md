@@ -9,6 +9,7 @@ tags: [valosaber, changelog]
 Newest first. One line per change that someone starting fresh would care about. Link to the note that has the detail.
 
 ## 2026-10-30 (latest)
+- Added Hush (Duelist, patch 13.09) to the class table; 30 agents confirmed ([[Agent Classes]]). Noted an agent-count mismatch to check.
 - Sourced all agent classes: 29 agents confirmed, including Miks (Controller) and Veto (Sentinel) ([[Agent Classes]]).
 - Added three-tier peer comparison: [[ADR-007 Three peer groups for comparison]], [[Baselines]], [[Agent Classes]], `parser/baselines.py`, `data/agent_classes.json`.
 

@@ -32,6 +32,8 @@ Build: `++Ares-Core+release-13.08`
 Deadeye = Chamber, Killjoy = Killjoy, Nox = Vyse, Sprinter = Neon, Terra = Waylay. Source: the skill's `codenames.json`, each confirmed from ability class names.
 
 ## Not in this replay
+Hush (Duelist) arrived in patch 13.09 on October 27, 2026, after this build. Her codename and characterId are unknown until a 13.09 or later replay is processed. Add them here then, with evidence.
+
 Tejo's agent ID is `b444168c-4e35-8076-db47-ef9bf368f384`. It does not match any player here.
 
 ## How to resolve a name properly
