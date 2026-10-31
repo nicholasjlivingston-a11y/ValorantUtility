@@ -8,6 +8,9 @@ tags: [valosaber, changelog]
 
 Newest first. One line per change that someone starting fresh would care about. Link to the note that has the detail.
 
+## 2026-10-30 (latest)
+- Added three-tier peer comparison: [[ADR-007 Three peer groups for comparison]], [[Baselines]], [[Agent Classes]], `parser/baselines.py`, `data/agent_classes.json`.
+
 ## 2026-10-30 (later)
 - GitHub linked; repo `ValorantUtility` holds `vault/`, `parser/`, `data/`, `inbox/` ([[Limits and Access]]).
 - Added `inbox/`, `data/warehouse/` and [[Queue]]. Tested the inbox flow with the raw export of `4c1d14ba`: parsed to a shard, ingested, idempotent on rerun ([[Run Order]]).

@@ -17,6 +17,8 @@ tags: [valosaber, status]
 - This vault, now also in GitHub (`nicholasjlivingston-a11y/ValorantUtility`, `main`): `vault/`, `parser/`, `data/`, `inbox/`. See [[Limits and Access]].
 - Inbox flow tested end to end: raw export zip pushed to `inbox/`, parsed to a 183 KB shard, verified and merged into `data/warehouse/` by `ingest.py`. See [[Queue]] and [[Run Order]].
 
+- Peer-group baselines (overall, class, agent) built and self-tested; waiting for data. See [[Baselines]] and [[ADR-007 Three peer groups for comparison]].
+
 ## In progress
 - Coding-agent stats layer: first delivery came back and was **rejected** (placeholder values, see [[Stats Layer Delivery 1 Review]]). The brief now carries the shard layout and a no-defaults rule; it needs to be sent again ([[Coding Agent Brief]]).
 
@@ -29,6 +31,7 @@ tags: [valosaber, status]
 | Decode `Slot`, `AssistType`, hit region codes; find real economy values | Coding agent |
 
 ## Next up (in order)
+0. Source the `unverified` agent classes ([[Agent Classes]]).
 1. Send the updated brief to the coding agent and require the acceptance checks on the Swiftplay sample before any delivery is accepted.
 2. Get 5 to 10 replays, at least one full competitive match, and rerun everything.
 3. Fit a real win-probability model once there are enough rounds (spike, side, time in the state).

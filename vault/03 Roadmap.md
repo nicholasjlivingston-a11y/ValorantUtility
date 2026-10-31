@@ -22,7 +22,8 @@ Exit test: run `ingest.py` on 30 shards with no rejects, and rebuild the page fr
 
 ## Phase 2: real model
 - Fit round win probability on many matches with alive counts, health, spike state, side, time ([[Win Probability Model]])
-- Define replacement level and shrink small samples toward the mean
+- Define replacement level and shrink small samples toward the mean (peer-group shrinkage is built: [[Baselines]])
+- Run overall, class and agent comparisons on real data ([[ADR-007 Three peer groups for comparison]]); source agent classes ([[Agent Classes]])
 - Map and side factors
 
 Exit test: the fitted model beats the simple alive-count model on held-out rounds (log loss).

@@ -28,6 +28,8 @@ Run Python with `-I` when it reads untrusted files. Put the skill scripts and th
 6. **Publish** `valosaber.html` as an artifact. Publishing the same file path redeploys to the same URL.
 7. **Merge shards.**
    `python3 -I ingest.py inbox warehouse --max-mb 8`
+8. **Baselines.**
+   `python3 -I baselines.py data/warehouse data/agent_classes.json data/baselines` ([[Baselines]]). Needs many matches to score anything beyond the overall scope.
 
 ## Files (all in the Claude project)
 `valosaber.py`, `build_table_swiftplay.py`, `build_site.py`, `valosaber_template.html`, `ingest.py`, `name_lookup_build13_08.json`.

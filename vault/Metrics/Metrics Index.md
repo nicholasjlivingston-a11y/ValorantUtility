@@ -17,6 +17,7 @@ Every metric has a note with its definition, formula, assumptions and limits. Ad
 | Utility-adjusted credit | [[Utility Credit]] | Built (Stage 1, heuristic weights) |
 | Utility lift (Stage 2) | [[Utility Credit]] | Planned |
 | Utility in the win-probability model (Stage 3) | [[Utility Credit]] | Planned |
+| Baselines: overall, class and agent peer groups | [[Baselines]] | Built, needs many matches |
 | Replacement level | [[07 Sabermetrics Notes]] | Needs many matches |
 | Map and side factors | [[07 Sabermetrics Notes]] | Needs many matches |
 
