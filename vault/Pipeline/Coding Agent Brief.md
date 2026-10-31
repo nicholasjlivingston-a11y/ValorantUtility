@@ -9,6 +9,8 @@ tags: [valosaber, pipeline, brief]
 The prompt to give the coding agent (Gemini) that maintains the replay parsing pipeline. It stands alone; the agent has no memory of our chats.
 
 ## Status
+Superseded for the pipeline shape by [[Unified Pipeline Brief]]; this note keeps the decoding facts and table lists that brief refers to.
+
 Version 2 of the prompt (2026-10-30). First delivery was rejected, see [[Stats Layer Delivery 1 Review]]. Changes in this version: shard output format added, explicit no-defaults rule, acceptance checks must be run and their output pasted back. Still to do when a new replay is available: replace the sample numbers.
 
 ## The prompt
