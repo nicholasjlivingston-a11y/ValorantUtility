@@ -5,11 +5,12 @@ Run in a Colab cell:  %run parser/colab_bootstrap.py   (or: python3 parser/colab
 
 1. Mounts Google Drive when running in Colab.
 2. Copies vrfkit from DRIVE_PATH (default MyDrive/valosaber/bin/vrfkit) to ./bin/vrfkit.
+   DRIVE_PATH may also be a bootstrap .zip that holds bin/vrfkit; the file is read from inside the zip.
 3. Checks its SHA-256 against parser/vrfkit.sha256 and refuses to continue on a mismatch.
 4. Marks it executable. It never downloads from anywhere else and never runs the binary.
 Not yet tested inside Colab; the hash check was tested locally.
 """
-import hashlib, os, shutil, stat, sys
+import hashlib, os, stat, sys
 from pathlib import Path
 
 DEFAULT = "/content/drive/MyDrive/valosaber/bin/vrfkit"
@@ -27,10 +28,19 @@ if not src.exists():
 if not src.exists():
     sys.exit(f"vrfkit not found at {src}. Put it in Drive, or pass the path as an argument.")
 
-h = hashlib.sha256(src.read_bytes()).hexdigest()
+if src.suffix.lower() == ".zip":
+    import zipfile
+    with zipfile.ZipFile(src) as z:
+        members = [n for n in z.namelist() if n.endswith("bin/vrfkit")]
+        if len(members) != 1:
+            sys.exit(f"expected exactly one bin/vrfkit in {src}, found {members}")
+        data = z.read(members[0])
+else:
+    data = src.read_bytes()
+h = hashlib.sha256(data).hexdigest()
 if h != want:
     sys.exit(f"REFUSING: sha256 {h} does not match parser/vrfkit.sha256 ({want}). Do not run this binary.")
 dst.parent.mkdir(exist_ok=True)
-shutil.copyfile(src, dst)
+dst.write_bytes(data)
 dst.chmod(dst.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 print(f"vrfkit verified and installed at {dst} (sha256 {h[:12]}...)")
