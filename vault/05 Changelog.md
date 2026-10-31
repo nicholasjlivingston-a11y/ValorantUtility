@@ -9,6 +9,7 @@ tags: [valosaber, changelog]
 Newest first. One line per change that someone starting fresh would care about. Link to the note that has the detail.
 
 ## 2026-10-31
+- Wrote [[Colab Agent Prompt]] (no GitHub token needed): the coding agent runs the batch pipeline from a downloaded copy of the repo and delivers shards through Drive.
 - Added the Colab batch notebook and `parser/batch_process.py`; `valosaber.py` no longer hardcodes build, duration or mode; skill scripts copied into `parser/skill/` ([[Run Order]]).
 - Bootstrap zip moved to `MyDrive/valosaber/bin/` (confirmed); `colab_bootstrap.py` now finds it there by default ([[Bootstrap Package]]).
 - Checked Drive for vrfkit: source zip and a 40.9 MB binary of unknown origin found; the pinned binary was built from the same source and supports builds to 13.08 ([[Bootstrap Package]]).
