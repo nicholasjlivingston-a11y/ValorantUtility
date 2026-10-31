@@ -11,6 +11,9 @@ ev = pd.read_parquet(exp/"events.parquet")
 act = pd.read_parquet(exp/"actors.parquet")
 fx = pd.read_csv(casts_csv)
 look = json.load(open(lookup_json))["agents"]
+MAN = json.load(open(exp/"manifest.json"))
+BUILD = MAN["replay_build"]; DURATION_S = MAN["duration_ms"] / 1000.0
+MODE = "Swiftplay" if act.class_path.astype(str).str.contains("Swiftplay").any() else "Standard"
 
 # ---------- roster ----------
 ps = f[f.group_path.astype(str).str.endswith("PlayerState_C") & (f.field_name.astype(str)=="Subject")]
@@ -263,7 +266,7 @@ for h_ in fx[fx.tag=="HealingDone"].drop_duplicates(["cast","target"]).itertuple
         self=bool(h_.target==h_.caster), death_cost=round(float(cost),4)))
 print("stage1 records: kills", len(kill_records), "| with utility setters", sum(1 for r_ in kill_records if r_["setters"]), "| with damage assisters", sum(1 for r_ in kill_records if r_["assisters"]), "| heals", len(heal_records), round(sum(h_["hp"] for h_ in heal_records),1),"HP")
 
-res = dict(kill_records=kill_records, heal_records=heal_records, build="++Ares-Core+release-13.08", rounds=R, duration_s=480.87, players=P.round(4).to_dict("records"),
+res = dict(kill_records=kill_records, heal_records=heal_records, build=BUILD, mode=MODE, rounds=R, duration_s=DURATION_S, players=P.round(4).to_dict("records"),
            rounds_detail=RR, duels=M.round(1).to_dict("records"), death_locations=DL, economy=(E.to_dict("records") if econ_usable else []), checks=chk,
            model=dict(wp_table={f"{a}v{b}": round(wp(a,b),4) for a in range(1,6) for b in range(1,6)}))
 json.dump(res, open(out, "w"), indent=1, default=lambda o: None if (isinstance(o,float) and np.isnan(o)) else (o.item() if hasattr(o,"item") else str(o)))
@@ -315,7 +318,7 @@ if len(sys.argv) > 6:
         "x": mv.pos_x.round().clip(-32767,32767).astype("int16"), "y": mv.pos_y.round().clip(-32767,32767).astype("int16"),
         "z": mv.pos_z.round().clip(-32767,32767).astype("int16"), "yaw_cd": (mv.yaw*100).round().clip(-32767,32767).astype("int16")})
     T["positions_4hz"] = cat(pos, ["match_id","uuid"])
-    index = {"schema_version": 1, "match_id": match_id, "build": "++Ares-Core+release-13.08", "mode": "Swiftplay",
+    index = {"schema_version": 1, "match_id": match_id, "build": BUILD, "mode": MODE,
              "rounds": int(R), "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
              "position_actor_coverage": round(cov, 3), "tables": {}}
     for name, df in T.items():

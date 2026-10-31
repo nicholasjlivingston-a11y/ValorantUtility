@@ -1,0 +1,24 @@
+{
+  "_comment": "Internal codename -> public agent name. Every entry here was confirmed by reading the agent's ability class names out of a replay, not from memory. Add entries only after confirming them the same way; an unknown codename passed through unchanged is correct, a guessed name is not.",
+  "_confirmed_via": "Ability_<Codename>_* class paths in actors.parquet",
+  "map": {
+    "Deadeye": "Chamber",
+    "Hunter": "Sova",
+    "Killjoy": "Killjoy",
+    "Nox": "Vyse",
+    "Sprinter": "Neon",
+    "Terra": "Waylay",
+    "Wraith": "Omen",
+    "Wushu": "Jett"
+  },
+  "kit_evidence": {
+    "Deadeye": "Trap / Teleporter_Tethers / Pistol / Giantslayer(sniper)",
+    "Hunter": "BoltExplosive / DeployDrone / RevealBolt / LaserMulti",
+    "Killjoy": "RemoteBees_MultiDetonate / Turret / Alarmbot / Bomb",
+    "Nox": "BarbedWire(Razorvine) / FlashTrap(Arc Rose) / Wall(Shear) / DisarmPulse(Steel Garden)",
+    "Sprinter": "Tunnel / Sprint / GroundStrike / LightningGun",
+    "Terra": "DoubleDash(Lightspeed) / TimeSlowGrenade(Saturate) / RewindTime(Refract) / DelayedBeam(Convergent Paths)",
+    "Wraith": "Smoke / ShortTeleport / NearsightMissile / GlobalTeleport",
+    "Wushu": "Smoke(Cloudburst) / Dash(Tailwind) / CycloneBoost(Updraft) / Dagger(Blade Storm) / Passive_Glide"
+  }
+}
