@@ -1,4 +1,4 @@
 .DS_Store
 .obsidian/workspace*.json
 *.vrf
-*.parquet
+__pycache__/
