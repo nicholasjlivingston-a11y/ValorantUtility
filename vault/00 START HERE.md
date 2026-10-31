@@ -48,6 +48,8 @@ Saved in the Claude project "Utility retry" (these are what a new chat can read)
 - `claude/ingest.py`: verifies and merges shards
 - `claude/data_pipeline.md`: the size-safe pipeline guide
 
+**GitHub:** `nicholasjlivingston-a11y/ValorantUtility` (branch `main`) holds `vault/`, `parser/`, `data/`, `inbox/`. Attach it at the start of a chat, clone it, and read `vault/00 START HERE.md`. Process new uploads with "process the inbox" ([[Queue]]).
+
 The published page: https://claude.ai/artifact/S1xAQwFf29rMUka9zPoa1b (private, owner only).
 
 ## Rules that are not negotiable

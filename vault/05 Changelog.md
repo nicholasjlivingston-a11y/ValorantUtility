@@ -8,6 +8,12 @@ tags: [valosaber, changelog]
 
 Newest first. One line per change that someone starting fresh would care about. Link to the note that has the detail.
 
+## 2026-10-30 (later)
+- GitHub linked; repo `ValorantUtility` holds `vault/`, `parser/`, `data/`, `inbox/` ([[Limits and Access]]).
+- Added `inbox/`, `data/warehouse/` and [[Queue]]. Tested the inbox flow with the raw export of `4c1d14ba`: parsed to a shard, ingested, idempotent on rerun ([[Run Order]]).
+- Reviewed the coding agent's first stats-layer delivery and rejected it: placeholder values ([[Stats Layer Delivery 1 Review]]).
+- Updated [[Coding Agent Brief]] with the shard layout and a no-defaults rule.
+
 ## 2026-10-30
 - Built this vault and the project handoff (`claude/START_HERE.md`).
 - Saved the patched table builder, page template and site build script to the project. The page regenerates byte-for-byte. See [[Run Order]].

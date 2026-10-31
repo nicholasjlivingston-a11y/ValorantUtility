@@ -1,6 +1,6 @@
 ---
 type: brief
-status: needs-update
+status: current
 updated: 2026-10-30
 tags: [valosaber, pipeline, brief]
 ---
@@ -8,11 +8,8 @@ tags: [valosaber, pipeline, brief]
 
 The prompt to give the coding agent (Gemini) that maintains the replay parsing pipeline. It stands alone; the agent has no memory of our chats.
 
-## Update before sending
-- Add the shard output format from [[Shard Schema]], and say the agent should emit shards, not only tables.
-- Add the version 2 fixes listed in [[Shard Schema]] (separate raw facts from model outputs, read `mode` and `build` from the manifest, use UUIDs everywhere).
-- Add the utility timing needs from [[Utility Credit]]: effect start and end on the replay clock, effect value units.
-- Replace the sample numbers if a newer reference replay is used.
+## Status
+Version 2 of the prompt (2026-10-30). First delivery was rejected, see [[Stats Layer Delivery 1 Review]]. Changes in this version: shard output format added, explicit no-defaults rule, acceptance checks must be run and their output pasted back. Still to do when a new replay is available: replace the sample numbers.
 
 ## The prompt
 ```
@@ -45,6 +42,9 @@ Parquet tables: fields, checkpoint_fields, actors, events, net_guids, movement, 
 9. Actor spawns are not casts. Use AbilityCastsThisRound for casts; use actors open/close only for persistent objects (smokes, walls, traps).
 10. Codename translation mismatch. The cast reconstruction already translates three confirmed codenames to public names (Wushu->Jett, Wraith->Omen, Hunter->Sova) while actor class paths keep raw codenames. Any join between them must translate through codenames.json, or those players are silently dropped.
 
+## Output format: shards
+Output one shard folder per match, named by match_id, with parquet (zstd) tables and `index.json` holding schema_version, match_id, build, mode (both read from manifest.json), rounds, and for every table its row count, bytes and SHA-256. Total shard size must stay under 8 MB per match. Raw tables hold facts only (no win probability or other model outputs). Player references are subject UUIDs everywhere; names come from a `players` table. Positions at 4 Hz, quantized to int16. The existing prototype layout (players, kills, damage, effects, positions_4hz) is in the vault note Shard Schema; keep those column names where they still apply and add the new tables below.
+
 ## Deliverables
 Write a new stage that outputs, per replay, a folder named by a stable match_id containing Parquet tables and a schema.md data dictionary. Every table has match_id; per-round tables have round (0-based) and each team's side (attack or defense).
 
@@ -73,6 +73,9 @@ On the sample Swiftplay replay these values are known:
 Add the same checks for a standard competitive replay once you have one, and report which tables came out empty or all zero.
 
 ## How to work
+- NEVER fill a value with a default or placeholder. If a value cannot be decoded, write null and record the table and column in quality.json. A first delivery contained 683 identical kill rows (same killer, victim, time 0, damage 150), 94 rounds all 0 to 90000 ms, and identical economy on every row, with a test report saying everything passed. That is unacceptable. Row counts must come from real data: kills equal characterDeath events, rounds equal roundStarted events.
+- Run the acceptance checks above against the Swiftplay sample and paste the actual output in your final report. A passing report with no output pasted will be rejected.
+- Tests must assert values (distinct kill times, distinct round boundaries, 10 players, economy not constant), not only that files exist.
 - Plan first, then implement one table at a time, with tests, committing after each.
 - Do not change existing tables or break existing scripts. Add new outputs alongside them.
 - If a field cannot be found or decoded, do not guess. Output nulls, record it in quality.json, and list it in your final report with what you tried.

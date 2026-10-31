@@ -11,6 +11,7 @@ Add one row when you push a shard to `inbox/`. Claude updates the status after i
 | match_id | date pushed | mode | status | note |
 |---|---|---|---|---|
 | 4c1d14ba | 2026-10-30 | Swiftplay | ingested | raw export zip pushed, parsed to a 183 KB shard, merged into data/warehouse. See [[4c1d14ba Swiftplay Pitt]] |
+| 39748ae1 | 2026-10-30 | unknown | rejected | stats-layer delivery with placeholder values, see [[Stats Layer Delivery 1 Review]] |
 
 Status values: waiting, ingested, rejected (with reason).
 Process: see [[Run Order]] and [[Limits and Access]].

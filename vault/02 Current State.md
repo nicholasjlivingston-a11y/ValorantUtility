@@ -14,10 +14,11 @@ tags: [valosaber, status]
 - Reference lookup with evidence for 9 of 10 agents ([[Agents]]).
 - Size-safe pipeline prototype: shard format plus ingest tool, tested on one real shard and one corrupted copy. See [[Data Pipeline]].
 - Briefs for the coding agent ([[Coding Agent Brief]]).
-- This vault.
+- This vault, now also in GitHub (`nicholasjlivingston-a11y/ValorantUtility`, `main`): `vault/`, `parser/`, `data/`, `inbox/`. See [[Limits and Access]].
+- Inbox flow tested end to end: raw export zip pushed to `inbox/`, parsed to a 183 KB shard, verified and merged into `data/warehouse/` by `ingest.py`. See [[Queue]] and [[Run Order]].
 
 ## In progress
-- Aligning the coding-agent brief with the shard format ([[Shard Schema]]). The brief still describes the stats layer without the exact shard layout.
+- Coding-agent stats layer: first delivery came back and was **rejected** (placeholder values, see [[Stats Layer Delivery 1 Review]]). The brief now carries the shard layout and a no-defaults rule; it needs to be sent again ([[Coding Agent Brief]]).
 
 ## Blocked or waiting
 | Item | Waiting on |
@@ -25,11 +26,10 @@ tags: [valosaber, status]
 | More replays (30+ for stable player numbers, hundreds for a fitted model) | User |
 | A full competitive replay, to check economy and spike fields | User |
 | Allow `valorant-api.com` for official agent, map and ability tables | User (network settings) |
-| Link GitHub for a warehouse repo | User |
 | Decode `Slot`, `AssistType`, hit region codes; find real economy values | Coding agent |
 
 ## Next up (in order)
-1. Hand the coding agent the brief and the shard format.
+1. Send the updated brief to the coding agent and require the acceptance checks on the Swiftplay sample before any delivery is accepted.
 2. Get 5 to 10 replays, at least one full competitive match, and rerun everything.
 3. Fit a real win-probability model once there are enough rounds (spike, side, time in the state).
 4. Stage 2 utility lift (needs effect start and end times and about 30 matches).
@@ -44,3 +44,6 @@ tags: [valosaber, status]
 - Only one match has been through it.
 - Economy values were all zero in this match.
 - The win-probability model ignores the spike, clock, weapons and position.
+
+## Rejected inputs
+- `inbox/valorant_analytics_stats_layer_delivery (2).zip` (match `39748ae1-…`): not ingested. See [[Stats Layer Delivery 1 Review]].

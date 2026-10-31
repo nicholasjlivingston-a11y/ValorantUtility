@@ -15,9 +15,9 @@ What the Claude session can and cannot reach. Check this before promising someth
 | Network | Allowlist. `valorant-api.com` is blocked. Package registries work | Ask the user to allow the domain in network settings; use web search and fetch for pages that appear in results |
 | Web fetch | Only URLs that appeared in the conversation or search results | Search first, then fetch the result link |
 | Google Drive connector | Reads metadata and text; downloads up to 10 MB per file | Shards under 8 MB ([[ADR-004 Ship shards not raw files]]); raw replays cannot go through it |
-| GitHub | Not linked to the account | Link it in settings to host a warehouse repo (100 MB per file) |
+| GitHub | Linked. Repo `nicholasjlivingston-a11y/ValorantUtility`, branch `main`; clone, pull and push work from the session. Needed the Claude GitHub app installed on the account and the repo attached with push access | Keep each file under 100 MB (25 MB for web uploads). New chats must attach the repo again |
 | Project docs | Text documents; they persist across sessions | Keep scripts and lookup JSON here; do not store parquet |
-| Obsidian | Not reachable from the session. The sync skill's script runs on the user's Windows machine | The user drops this vault in, or runs the sync script himself |
+| Obsidian | Not reachable from the session; it does not update itself | Vault lives in the repo under `vault/`; the user pulls it (Obsidian Git plugin can auto-pull) |
 | Artifacts | Published pages are private to the owner until shared | Tell the user when a page is meant for others |
 | Replay files | Original `.vrf` and the 159 MB package are not readable here | Parse on the user's side and send shards |
 
