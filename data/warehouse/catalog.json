@@ -1,0 +1,17 @@
+{
+ "schema_version": 1,
+ "matches": {
+  "4c1d14ba-6e21-496f-9101-1b85fa513fd8": {
+   "build": "++Ares-Core+release-13.08",
+   "mode": "Swiftplay",
+   "rounds": 5,
+   "tables": {
+    "players": 10,
+    "kills": 34,
+    "damage": 92,
+    "effects": 63,
+    "positions_4hz": 16152
+   }
+  }
+ }
+}

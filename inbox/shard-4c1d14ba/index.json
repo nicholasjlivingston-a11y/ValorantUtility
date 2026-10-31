@@ -1,0 +1,36 @@
+{
+ "schema_version": 1,
+ "match_id": "4c1d14ba-6e21-496f-9101-1b85fa513fd8",
+ "build": "++Ares-Core+release-13.08",
+ "mode": "Swiftplay",
+ "rounds": 5,
+ "created_utc": "2026-10-31T02:05:15Z",
+ "position_actor_coverage": 1.0,
+ "tables": {
+  "players": {
+   "rows": 10,
+   "bytes": 19002,
+   "sha256": "82b7d8d530c6d3aba560c7d90009252987e69ae8b5500d2e94301b0cf008c0da"
+  },
+  "kills": {
+   "rows": 34,
+   "bytes": 9954,
+   "sha256": "bf60c7ecad6e00f66e34545d0c177927dcab77ba8fedac468dca9f352d18a5bf"
+  },
+  "damage": {
+   "rows": 92,
+   "bytes": 7294,
+   "sha256": "c661f66b196a5a9af05a66fce8d736ea9ddf68a5cd0ad5ab13db9d973b86b269"
+  },
+  "effects": {
+   "rows": 63,
+   "bytes": 8157,
+   "sha256": "62c20a2586b2864da0121186d8e1a4378ae52a5496b2242a93e193f99b7ec490"
+  },
+  "positions_4hz": {
+   "rows": 16152,
+   "bytes": 138593,
+   "sha256": "8f848c2851991c78c62d37ae85d6bf680975562f3d0d6bf45ac9654001acb897"
+  }
+ }
+}
