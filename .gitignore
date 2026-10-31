@@ -6,3 +6,5 @@ bin/
 vrfkit
 raw_replays/
 parsed_outputs/
+.obsidian/
+.trash/
