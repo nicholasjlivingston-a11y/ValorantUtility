@@ -8,6 +8,9 @@ tags: [valosaber, changelog]
 
 Newest first. One line per change that someone starting fresh would care about. Link to the note that has the detail.
 
+## 2026-10-31
+- Checked Drive for vrfkit: source zip and a 40.9 MB binary of unknown origin found; the pinned binary was built from the same source and supports builds to 13.08 ([[Bootstrap Package]]).
+
 ## 2026-10-30 (latest)
 - Colab plan for vrfkit: kept in Drive, pinned by SHA-256, verified by `parser/colab_bootstrap.py`; `bin/` and replays are git-ignored ([[Bootstrap Package]]).
 - Drafted [[Unified Pipeline Brief]]: one core fact layer, a stats contract and a meta contract.

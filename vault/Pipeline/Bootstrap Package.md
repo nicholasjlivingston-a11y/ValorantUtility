@@ -31,6 +31,13 @@ Text files only read and write local files. `run_pipeline.py` uses `subprocess` 
 ## Repository note
 A 38 MB binary in git stays in the history for good. Preferred: keep `bin/vrfkit` out of the repo (add it to `.gitignore`, or use Git LFS or a release asset). The zip is already committed; do not add the unpacked binary on top of it.
 
+## What vrfkit is, and which binary is right (checked 2026-10-31)
+- vrfkit is an open-source parser (Apache-2.0, version 0.3.0, repository `yakisoba0728/vrfkit`, derived from `michel-giehl/ValorantReplayParser`). The source is in Drive as `valosaber/bin/vrfkit-main.zip` (1.5 MB).
+- **The bootstrap binary** (38,327,056 bytes, SHA pinned in `parser/vrfkit.sha256`) contains the build path `/content/vrfkit-src/vrfkit-main`, so it was compiled in Colab from that same source. It knows replay builds up to `release-13.08`, and it produced our sample export. This is the one with evidence.
+- **The Drive binary** `vrfkit_bin/vrfkit` (40,934,608 bytes, dated 2026-10-18) could not be hashed or inspected because the Drive connector stops at 10 MB. Its provenance is unknown. Do not pin it until its hash is known and the sample still passes.
+- **Build support is thin at 13.08.** The source README says builds 11.06 to 13.06 were verified on 1,018 replays, but 13.08 on only 2, and one of those fails a checkpoint cross-check. It also says structured-array child rows (the kind the combat reports use) are admitted on **no** measured route yet for 13.08. Our sample decoded anyway, but treat 13.08 results as less proven than older builds.
+- **Patch 13.09 (Hush) is not supported** by this source (it lists builds through 13.08). Replays from 13.09 or later may fail or decode partially; expect to need a newer vrfkit.
+
 ## vrfkit in Colab with a Gemini agent
 Colab machines are temporary, so the binary must be put there at the start of every session.
 - Keep one copy of `vrfkit` in Google Drive (`MyDrive/valosaber/bin/vrfkit`), not in git.
