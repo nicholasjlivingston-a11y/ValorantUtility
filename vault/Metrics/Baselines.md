@@ -31,6 +31,7 @@ python3 -I parser/baselines.py --selftest
 Options: `--min-rounds 20`, `--min-peers 8`, `--k 50`, `--confirmed-classes-only`.
 
 ## Limits
+- Class names are confirmed for all 29 agents (2026-10-30); recheck when Riot changes a role.
 - With one match nothing is scored at class or agent level. The overall scope runs but every row is `low_rounds`.
 - `kst_pct` is not included because it cannot be summed across matches without its round counts. Add it when the shard holds the counts.
 - Peer baselines use raw rates, while the player's score uses the shrunk rate. Revisit if groups stay small.

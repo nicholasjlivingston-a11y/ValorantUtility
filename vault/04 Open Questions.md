@@ -20,7 +20,6 @@ Add new questions at the top. When one is answered, move it to the "Answered" se
 | 7 | How should the win-probability model treat the spike and sides? | Post-plant rounds are mispredicted | Many rounds with spike and side data | Phase 2 |
 | 8 | What is the unit of per-target effect values (seconds? fraction? damage?) | Weighting utility effects | Effect start and end times plus the coding agent's decoding | Coding agent |
 | 9 | Can the Drive connector create binary files? | Whether Claude can write shards back | A test write | Claude |
-| 12 | Which official source confirms each agent's class? | Class peer group uses unverified classes | An agent table or agent pages | Reference table |
 | 10 | Who are the 10 players across matches? Is `Subject` UUID stable between matches? | Player baselines | Two matches with the same player | Needs more replays |
 | 11 | Why did the stats layer fill defaults instead of decoded values? | No trustworthy tables from the pipeline | Resend the brief; require acceptance checks on the Swiftplay sample | Coding agent |
 
@@ -31,3 +30,4 @@ Add new questions at the top. When one is answered, move it to the "Answered" se
 | Why did only 7 of 10 players get positions? | Casts use public names for 3 confirmed codenames, actor paths use raw codenames | [[Replay Data Guide]] |
 | Is Sequoia Tejo? | No. Its manifest ID resolves to Iso | [[Agents]] |
 | Is the kill time reliable? | Yes, within 9 ms of death events using field row timestamps | [[ADR-002 Event timing from field timestamps]] |
+| Which source confirms each agent's class? | Two agent-list pages agree on all 28 listed agents; Miks from a reveal article (Controller). Rechecked per patch | [[Agent Classes]] |

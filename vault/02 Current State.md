@@ -31,7 +31,6 @@ tags: [valosaber, status]
 | Decode `Slot`, `AssistType`, hit region codes; find real economy values | Coding agent |
 
 ## Next up (in order)
-0. Source the `unverified` agent classes ([[Agent Classes]]).
 1. Send the updated brief to the coding agent and require the acceptance checks on the Swiftplay sample before any delivery is accepted.
 2. Get 5 to 10 replays, at least one full competitive match, and rerun everything.
 3. Fit a real win-probability model once there are enough rounds (spike, side, time in the state).

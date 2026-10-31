@@ -1,35 +1,156 @@
 {
-  "_comment": "Agent -> class. Status follows ADR-005: 'confirmed' needs a source in evidence, 'unverified' means recalled from general knowledge and still needs a source. Update status in place; never delete an agent. Agents not listed, or with class null, are left out of class comparisons.",
-  "classes": ["Duelist", "Initiator", "Controller", "Sentinel"],
+  "_comment": "Agent -> class. Status follows ADR-005: 'confirmed' needs a source in evidence, 'unverified' means recalled from general knowledge and still needs a source. Update status in place; never delete an agent. Agents not listed, or with class null, are left out of class comparisons. Last sourced 2026-10-30. Roles can change in later patches; recheck when a new build is processed.",
+  "classes": [
+    "Duelist",
+    "Initiator",
+    "Controller",
+    "Sentinel"
+  ],
   "agents": {
-    "Iso":       {"class": "Duelist",    "status": "confirmed",  "evidence": "ID page lists Iso (Duelist), see Reference/Agents"},
-    "Jett":      {"class": "Duelist",    "status": "unverified", "evidence": ""},
-    "Phoenix":   {"class": "Duelist",    "status": "unverified", "evidence": ""},
-    "Reyna":     {"class": "Duelist",    "status": "unverified", "evidence": ""},
-    "Raze":      {"class": "Duelist",    "status": "unverified", "evidence": ""},
-    "Yoru":      {"class": "Duelist",    "status": "unverified", "evidence": ""},
-    "Neon":      {"class": "Duelist",    "status": "unverified", "evidence": ""},
-    "Waylay":    {"class": "Duelist",    "status": "unverified", "evidence": ""},
-    "Sova":      {"class": "Initiator",  "status": "unverified", "evidence": ""},
-    "Fade":      {"class": "Initiator",  "status": "unverified", "evidence": ""},
-    "Breach":    {"class": "Initiator",  "status": "unverified", "evidence": ""},
-    "Skye":      {"class": "Initiator",  "status": "unverified", "evidence": ""},
-    "KAY/O":     {"class": "Initiator",  "status": "unverified", "evidence": ""},
-    "Gekko":     {"class": "Initiator",  "status": "unverified", "evidence": ""},
-    "Tejo":      {"class": "Initiator",  "status": "unverified", "evidence": ""},
-    "Omen":      {"class": "Controller", "status": "unverified", "evidence": ""},
-    "Brimstone": {"class": "Controller", "status": "unverified", "evidence": ""},
-    "Viper":     {"class": "Controller", "status": "unverified", "evidence": ""},
-    "Astra":     {"class": "Controller", "status": "unverified", "evidence": ""},
-    "Harbor":    {"class": "Controller", "status": "unverified", "evidence": ""},
-    "Clove":     {"class": "Controller", "status": "unverified", "evidence": ""},
-    "Cypher":    {"class": "Sentinel",   "status": "unverified", "evidence": ""},
-    "Killjoy":   {"class": "Sentinel",   "status": "unverified", "evidence": ""},
-    "Sage":      {"class": "Sentinel",   "status": "unverified", "evidence": ""},
-    "Chamber":   {"class": "Sentinel",   "status": "unverified", "evidence": ""},
-    "Deadlock":  {"class": "Sentinel",   "status": "unverified", "evidence": ""},
-    "Vyse":      {"class": "Sentinel",   "status": "unverified", "evidence": ""},
-    "Veto":      {"class": "Sentinel",   "status": "unverified", "evidence": "kit seen in replay (trap, teleport) fits a Sentinel but class not sourced"},
-    "Miks":      {"class": null,         "status": "unknown",    "evidence": "class not known; find a source before adding"}
+    "Iso": {
+      "class": "Duelist",
+      "status": "confirmed",
+      "evidence": "ID page lists Iso as a Duelist; also listed as Duelist on the Fandom wiki and ExitLag guide (checked 2026-10-30)"
+    },
+    "Jett": {
+      "class": "Duelist",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Phoenix": {
+      "class": "Duelist",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Reyna": {
+      "class": "Duelist",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Raze": {
+      "class": "Duelist",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Yoru": {
+      "class": "Duelist",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Neon": {
+      "class": "Duelist",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Waylay": {
+      "class": "Duelist",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Sova": {
+      "class": "Initiator",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Fade": {
+      "class": "Initiator",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Breach": {
+      "class": "Initiator",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Skye": {
+      "class": "Initiator",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "KAY/O": {
+      "class": "Initiator",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Gekko": {
+      "class": "Initiator",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Tejo": {
+      "class": "Initiator",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Omen": {
+      "class": "Controller",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Brimstone": {
+      "class": "Controller",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Viper": {
+      "class": "Controller",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Astra": {
+      "class": "Controller",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Harbor": {
+      "class": "Controller",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Clove": {
+      "class": "Controller",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Cypher": {
+      "class": "Sentinel",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Killjoy": {
+      "class": "Sentinel",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Sage": {
+      "class": "Sentinel",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Chamber": {
+      "class": "Sentinel",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Deadlock": {
+      "class": "Sentinel",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Vyse": {
+      "class": "Sentinel",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30)"
+    },
+    "Veto": {
+      "class": "Sentinel",
+      "status": "confirmed",
+      "evidence": "Listed in this role on both the Valorant Fandom wiki Agents page and the ExitLag agents guide (checked 2026-10-30); GosuGamers headline 'Veto joins VALORANT as the newest Sentinel agent'"
+    },
+    "Miks": {
+      "class": "Controller",
+      "status": "confirmed",
+      "evidence": "GosuGamers news 78131 (Miks reveal) calls Miks the newest Controller in VALORANT (checked 2026-10-30). Not yet on the wiki list pages checked"
+    }
   }
 }
