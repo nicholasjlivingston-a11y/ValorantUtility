@@ -40,12 +40,12 @@ A 38 MB binary in git stays in the history for good. Preferred: keep `bin/vrfkit
 
 ## vrfkit in Colab with a Gemini agent
 Colab machines are temporary, so the binary must be put there at the start of every session.
-- Keep one copy of `vrfkit` in Google Drive (`MyDrive/valosaber/bin/vrfkit`), not in git.
+- Keep one copy of `vrfkit` in Google Drive, not in git. As of 2026-10-31 it is held inside the bootstrap zip at `MyDrive/valosaber/bin/valorant_complete_pipeline_bootstrap_package (2).zip` (confirmed in Drive; 8,690,453 bytes). The other folder `vrfkit_bin/` holds an unrelated 40.9 MB binary of unknown origin; do not use it.
 - `parser/vrfkit.sha256` pins the exact binary (SHA-256 `afe615e8...c04a`, 38,327,056 bytes, from this package). `parser/colab_bootstrap.py` mounts Drive, copies the file, checks the hash, marks it executable, and stops on a mismatch. It never downloads and never runs the binary. Tested locally for both a match and a mismatch; not yet tested inside Colab.
 - When vrfkit is updated, replace the Drive copy and the `.sha256` file in the same commit, and write the new build in [[05 Changelog]].
 - Replays and outputs also live in Drive; Colab's disk is lost when the session ends.
 - Give the agent a GitHub token only through Colab Secrets (a fine-grained token limited to this one repo, contents write). Never paste it in a cell or a notebook.
-- `colab_bootstrap.py` also accepts the bootstrap zip itself as the source and reads `bin/vrfkit` from inside it, still checking the hash. A copy of the zip (8,690,453 bytes, the same size as the one reviewed here) sits at the root of the user's Drive; it could not be downloaded to compare, because the connector fails above 10 MB of transfer.
+- With no argument, `colab_bootstrap.py` looks in `MyDrive/valosaber/bin/` for the bootstrap zip first, then a loose `vrfkit`. It also accepts the bootstrap zip itself as the source and reads `bin/vrfkit` from inside it, still checking the hash. A copy of the zip (8,690,453 bytes, the same size as the one reviewed here) sits at the root of the user's Drive; it could not be downloaded to compare, because the connector fails above 10 MB of transfer.
 - The agent must run `colab_bootstrap.py` first and must not fetch a binary from anywhere else.
 
 ## Next steps

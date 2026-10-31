@@ -1,7 +1,7 @@
 ---
 type: status
 status: current
-updated: 2026-10-30
+updated: 2026-10-31
 tags: [valosaber, status]
 ---
 # Current State
@@ -21,7 +21,7 @@ tags: [valosaber, status]
 
 ## In progress
 - [[Unified Pipeline Brief]] drafted; the user needs to check the meta contract before it goes to the coding agent.
-- Bootstrap package reviewed, waiting for a decision on CSV versus shard route ([[Bootstrap Package]]).
+- Bootstrap package reviewed and in place in Drive (`valosaber/bin/`); still waiting for a decision on CSV versus shard route ([[Bootstrap Package]]). Colab run of `colab_bootstrap.py` not yet confirmed.
 - Coding-agent stats layer: first delivery came back and was **rejected** (placeholder values, see [[Stats Layer Delivery 1 Review]]). The brief now carries the shard layout and a no-defaults rule; it needs to be sent again ([[Coding Agent Brief]]).
 
 ## Blocked or waiting

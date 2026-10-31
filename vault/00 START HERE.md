@@ -1,7 +1,7 @@
 ---
 type: handoff
 status: current
-updated: 2026-10-30
+updated: 2026-10-31
 tags: [valosaber, handoff]
 ---
 # START HERE
@@ -51,6 +51,11 @@ Saved in the Claude project "Utility retry" (these are what a new chat can read)
 **GitHub:** `nicholasjlivingston-a11y/ValorantUtility` (branch `main`) holds `vault/`, `parser/`, `data/`, `inbox/`. Attach it at the start of a chat, clone it, and read `vault/00 START HERE.md`. Process new uploads with "process the inbox" ([[Queue]]).
 
 The published page: https://claude.ai/artifact/S1xAQwFf29rMUka9zPoa1b (private, owner only).
+
+## Colab parsing (the coding agent's job)
+1. Clone the repo (`nicholasjlivingston-a11y/ValorantUtility`).
+2. `python3 parser/colab_bootstrap.py` mounts Drive, reads `vrfkit` from the bootstrap zip in `MyDrive/valosaber/bin/`, checks it against `parser/vrfkit.sha256`, and refuses on a mismatch.
+3. Parse replays, write shards, push to `inbox/` or save to Drive. Then say "process the inbox" here. See [[Bootstrap Package]], [[Queue]], [[Unified Pipeline Brief]].
 
 ## Rules that are not negotiable
 - **Names are confirmed or they stay as codenames.** See [[ADR-005 Names only when confirmed]].

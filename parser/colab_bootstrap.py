@@ -4,7 +4,7 @@
 Run in a Colab cell:  %run parser/colab_bootstrap.py   (or: python3 parser/colab_bootstrap.py [DRIVE_PATH])
 
 1. Mounts Google Drive when running in Colab.
-2. Copies vrfkit from DRIVE_PATH (default MyDrive/valosaber/bin/vrfkit) to ./bin/vrfkit.
+2. Copies vrfkit from DRIVE_PATH to ./bin/vrfkit. With no argument it looks in MyDrive/valosaber/bin/ for the bootstrap zip, then for a loose vrfkit file.
    DRIVE_PATH may also be a bootstrap .zip that holds bin/vrfkit; the file is read from inside the zip.
 3. Checks its SHA-256 against parser/vrfkit.sha256 and refuses to continue on a mismatch.
 4. Marks it executable. It never downloads from anywhere else and never runs the binary.
@@ -13,8 +13,12 @@ Not yet tested inside Colab; the hash check was tested locally.
 import hashlib, os, stat, sys
 from pathlib import Path
 
-DEFAULT = "/content/drive/MyDrive/valosaber/bin/vrfkit"
-src = Path(sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else DEFAULT)
+BIN = "/content/drive/MyDrive/valosaber/bin/"
+CANDIDATES = [BIN + "valorant_complete_pipeline_bootstrap_package (2).zip", BIN + "vrfkit"]
+if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+    src = Path(sys.argv[1])
+else:
+    src = Path(CANDIDATES[0])
 here = Path(__file__).resolve().parent
 want = (here / "vrfkit.sha256").read_text().split()[0].lower()
 dst = Path("bin/vrfkit")
@@ -25,6 +29,8 @@ if not src.exists():
         drive.mount("/content/drive")
     except ImportError:
         pass
+if not src.exists() and len(sys.argv) <= 1:
+    src = next((Path(c) for c in CANDIDATES if Path(c).exists()), src)
 if not src.exists():
     sys.exit(f"vrfkit not found at {src}. Put it in Drive, or pass the path as an argument.")
 
