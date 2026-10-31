@@ -1,0 +1,146 @@
+{
+  "_comment": "Name lookups for Valorant replay build ++Ares-Core+release-13.08. status: confirmed = public source AND kit/effect evidence agree; kit_only = kit clearly matches but no source listed the codename; unconfirmed = keep raw codename in outputs.",
+  "agents": {
+    "Wushu": {
+      "name": "Jett",
+      "status": "confirmed",
+      "evidence": "Manifest characterId add6443a-41bd-e414-f6ad-e58d267f4e95 listed as Jett (oanor.com valorant-api example); kit Smoke/Dash/CycloneBoost/Dagger; skill codenames.json"
+    },
+    "Wraith": {
+      "name": "Omen",
+      "status": "confirmed",
+      "evidence": "skill codenames.json (kit: Smoke/ShortTeleport/NearsightMissile/GlobalTeleport); valorfeed.gg codename table"
+    },
+    "Hunter": {
+      "name": "Sova",
+      "status": "confirmed",
+      "evidence": "skill codenames.json (kit: BoltExplosive/DeployDrone/RevealBolt/LaserMulti); valorfeed.gg codename table"
+    },
+    "Gumshoe": {
+      "name": "Cypher",
+      "status": "confirmed",
+      "evidence": "valorfeed.gg codename table; kit TripWire/Camera/CageTrap/Interrogate"
+    },
+    "Vampire": {
+      "name": "Reyna",
+      "status": "confirmed",
+      "evidence": "valorfeed.gg codename table; kit NearsightAoE/Escape/Heal/Frenzy; effects HealingDone + EnemiesNearsighted"
+    },
+    "BountyHunter": {
+      "name": "Fade",
+      "status": "confirmed",
+      "evidence": "valorfeed.gg lists 'Bounty Hunter' for Fade (2023 article); effects EnemiesSeized/Marked/Nearsighted/Spotted"
+    },
+    "Phoenix": {
+      "name": "Phoenix",
+      "status": "kit_only",
+      "evidence": "Kit Molotov/FlareCurve/FireballWall/SelfRes matches Phoenix. valorfeed.gg lists a different codename (Apollo), so the codename in this build differs from that source"
+    },
+    "Sequoia": {
+      "name": "Iso",
+      "status": "confirmed",
+      "evidence": "Manifest characterId 0e38b510-41a8-5780-5e8f-568b2a4f2d6c resolves to Iso (Duelist) on valorant-info-oumi.onrender.com; kit matches oneesports Iso guide (Undercut fragile/vulnerable bolt, Double Tap orb+shield, Contingency wall, Kill Contract arena duel)"
+    },
+    "Iris": {
+      "name": "Miks",
+      "status": "confirmed",
+      "evidence": "Manifest characterId 7c8a4701-4de6-9355-b254-e09bc2a34b72 resolves to Miks (valorant-info-oumi.onrender.com agent page); kit M-pulse/Waveform/Harmonize/Bassquake matches Thumper/Smoke/Harmonize/SonicWave; user also stated it"
+    },
+    "Pine": {
+      "name": "Veto",
+      "status": "confirmed_by_user_and_kit",
+      "evidence": "User stated Pine is Veto; kit matches esports.gg Veto guide: SeizeTrap=Chokehold (trap, holds enemies), UsableTP=Crosscut (teleport), RadEater=Interceptor, SelfBuffVers=Evolution (self-buff ultimate). Manifest ID 92eeef5d-... not independently resolved"
+    }
+  },
+  "agent_ids_from_manifest": {
+    "add6443a-41bd-e414-f6ad-e58d267f4e95": "Jett",
+    "7c8a4701-4de6-9355-b254-e09bc2a34b72": "Miks (codename Iris)",
+    "b444168c-4e35-8076-db47-ef9bf368f384": "Tejo (NOT in this replay)",
+    "_unresolved": [
+      "8e253930-4c05-31dd-1b6c-968525494517",
+      "92eeef5d-43b5-1d4a-8d03-b3927a09034b (Pine)",
+      "dade69b4-4f5a-8528-247b-219e5a1facd6",
+      "117ed9e3-49f3-6512-3ccf-0cada7e3823b",
+      "a3bfb853-43b2-7238-a4f1-ad90e9e46bcc",
+      "eb93336a-449b-9c1b-0a54-a891f7921d69",
+      "320b2a48-4d9b-a075-30f1-1f93a9b638fa"
+    ],
+    "0e38b510-41a8-5780-5e8f-568b2a4f2d6c": "Iso (codename Sequoia)"
+  },
+  "maps": {
+    "/Game/Maps/Pitt/Pitt": {
+      "name": null,
+      "status": "unconfirmed",
+      "evidence": "A search result title pairs 'Pearl' with 'Pitt', but no fetched page confirmed it"
+    }
+  },
+  "abilities": {
+    "_note": "Class-name -> in-game name. 'matched' = name or effect evidence from sources; 'likely' = slot-pattern only. Folder letters are NOT keybinds in general (see skill notes); pattern seen here: Ability_4 folder = grenade/C-slot ability for Iso, Veto and Miks.",
+    "Sequoia(Iso)": {
+      "Ability_Sequoia_4_Wave": [
+        "Contingency",
+        "likely",
+        "Ability_4 = wall ability; Iso grenade slot"
+      ],
+      "Ability_Sequoia_Q_FragileMissilePrototypeEquipped": [
+        "Undercut",
+        "matched",
+        "'fragile' debuff = Vulnerable tag; projectile with trajectory warning"
+      ],
+      "Ability_Sequoia_E_WreckingBall": [
+        "Double Tap",
+        "matched",
+        "energy orb + shield objects spawned"
+      ],
+      "Ability_X_Sequoia_ArenaLineCapture / Actor_Sequoia_X_StandardArena": [
+        "Kill Contract",
+        "matched",
+        "arena + teleport components; Displaced tag"
+      ]
+    },
+    "Pine(Veto)": {
+      "Ability_Pine_Q_SeizeTrap": [
+        "Chokehold",
+        "matched",
+        "trap grenade that deploys a tether sphere"
+      ],
+      "Ability_Pine_4_UsableTP": [
+        "Crosscut",
+        "likely",
+        "teleport; Ability_4 slot"
+      ],
+      "Ability_Pine_E_RadEater": [
+        "Interceptor",
+        "likely",
+        "by elimination"
+      ],
+      "Ability_Pine_X_SelfBuffVers_Engineering": [
+        "Evolution",
+        "likely",
+        "self-buff ultimate"
+      ]
+    },
+    "Iris(Miks)": {
+      "Ability_Iris_Harmonize": [
+        "Harmonize",
+        "matched",
+        "same name; AlliesStimmed effect"
+      ],
+      "Ability_Iris_E_MT_Smoke_Production": [
+        "Waveform",
+        "likely",
+        "smoke object; EnemiesBlocked effect"
+      ],
+      "Ability_Iris_Thumper": [
+        "M-Pulse",
+        "likely",
+        "Ability_4 slot = grenade slot; spawns heal projectile/object, check"
+      ],
+      "Ability_Iris_X_SonicWave": [
+        "Bassquake",
+        "likely",
+        "ultimate slot"
+      ]
+    }
+  }
+}

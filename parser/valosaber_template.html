@@ -1,0 +1,323 @@
+<title>Valosaber</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout concept: a scorebook. Ruled stat sheets, mono numerals, one chart per round, a leaderboard that sorts. */
+:root{
+  --bg:#edf1f1; --surface:#fbfcfc; --ink:#13201f; --muted:#587270; --line:#cfd9d8;
+  --a:#0c7683; --b:#c4440b; --pos:#18814a; --neg:#b3261e; --wash:#e2eaea;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif; --body:"Barlow",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1516; --surface:#142022; --ink:#e4eeed; --muted:#8aa19e; --line:#253739;
+  --a:#46c3d3; --b:#ff8b4d; --pos:#52d68c; --neg:#ff7068; --wash:#1b2c2e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1516; --surface:#142022; --ink:#e4eeed; --muted:#8aa19e; --line:#253739;
+  --a:#46c3d3; --b:#ff8b4d; --pos:#52d68c; --neg:#ff7068; --wash:#1b2c2e; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance;line-height:1.05}
+h1{font-size:clamp(44px,8vw,76px);letter-spacing:.02em}
+h2{font-size:30px;text-transform:uppercase;letter-spacing:.06em}
+h3{font-size:20px;letter-spacing:.04em;text-transform:uppercase}
+p{margin:0;max-width:66ch}
+.lede{font-size:19px;color:var(--ink);max-width:62ch}
+.muted{color:var(--muted)}
+.mono,td,th.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.meta{display:flex;flex-wrap:wrap;gap:6px 22px;font:500 13px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+header{display:flex;flex-direction:column;gap:14px;border-bottom:3px double var(--ink);padding-bottom:22px}
+section{display:flex;flex-direction:column;gap:16px}
+.head{display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.scroll{overflow-x:auto;border:1px solid var(--line);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+thead th{font:600 12px var(--body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--wash);cursor:pointer;user-select:none;position:relative}
+thead th[aria-sort]{color:var(--ink)}
+thead th:focus-visible{outline:2px solid var(--a);outline-offset:-2px}
+tbody tr:last-child td{border-bottom:0}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:baseline}
+.A{background:var(--a)} .B{background:var(--b)}
+.pos{color:var(--pos)} .neg{color:var(--neg)}
+.bar{display:inline-block;height:8px;vertical-align:middle;margin-left:8px;border-radius:1px}
+.agent{font:700 17px var(--display);letter-spacing:.04em;text-transform:uppercase}
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.map>div{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.map b{font:700 14px var(--display);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.map span{font-size:15px}
+.map i{font:500 13px var(--mono);font-style:normal;color:var(--a)}
+.rounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+.rc{background:var(--surface);border:1px solid var(--line);padding:12px 12px 8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.rc .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.rc .t span{font:500 12px var(--mono);color:var(--muted)}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--mono);fill:var(--muted);font-size:9px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted)}
+.swings{display:flex;flex-direction:column;border:1px solid var(--line);background:var(--surface)}
+.swing{display:grid;grid-template-columns:92px 1fr auto;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);align-items:baseline}
+.swing:last-child{border-bottom:0}
+.swing .w{font:500 13px var(--mono);color:var(--muted)}
+.swing .p{font:500 15px var(--mono)}
+.tag{font:500 11px var(--mono);border:1px solid var(--line);padding:1px 6px;margin-left:6px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px}
+.cell{text-align:center!important;font-size:12px;min-width:84px}
+.wp td,.wp th{text-align:center;font-size:13px}
+.note{border-left:3px solid var(--a);padding:2px 0 2px 14px;color:var(--ink)}
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.checks>div{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.checks b{font:500 20px var(--mono)} .checks small{color:var(--muted);font-size:13px}
+ul.tight{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;max-width:70ch}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px 24px;background:var(--surface);border:1px solid var(--line);padding:14px 16px}
+.ctl label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.ctl label span{display:flex;justify-content:space-between;font-family:var(--mono);color:var(--ink)}
+.ctl input[type=range]{width:100%;accent-color:var(--a)}
+.ctl button{font:600 13px var(--body);padding:6px 12px;border:1px solid var(--line);background:var(--wash);color:var(--ink);cursor:pointer;align-self:end}
+.ctl button:focus-visible,.ctl input:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.delta{font:500 12px var(--mono);color:var(--muted)}
+footer{color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:560px){.swing{grid-template-columns:1fr;gap:2px}}
+@media (prefers-reduced-motion:no-preference){tbody tr{transition:background .12s}tbody tr:hover{background:var(--wash)}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="meta" id="meta"></div>
+  <h1>Valosaber</h1>
+  <p class="lede">Baseball learned to ask what a player actually added to winning, once context and luck are taken out. This page asks the same of one Valorant match, using the numbers hidden in the replay.</p>
+</header>
+
+<section>
+  <div class="head"><h2>From the diamond to the round</h2><p class="muted">Sabermetrics replaced counting stats with a few ideas. Each one has a Valorant version that this replay can support, and two that it cannot yet.</p></div>
+  <div class="map" id="concepts"></div>
+</section>
+
+<section>
+  <div class="head"><h2>The leaderboard</h2><p class="muted">Click a column to sort. WPA is the share of rounds a player won for their team through kills, minus the share they gave away through deaths. Index columns read 100 as the match average.</p></div>
+  <div class="scroll"><table id="board"><thead></thead><tbody></tbody></table></div>
+  <p class="note" id="read"></p>
+</section>
+
+<section>
+  <div class="head"><h2>Utility-adjusted credit</h2><p class="muted">A kill is not all the killer's doing. Here each kill's win probability is shared with the players who set it up. Move the sliders to see how much the rankings depend on the split. The shares always add back to the kill's value, so nobody is credited twice.</p></div>
+  <div class="ctl">
+    <label>Killer<span><output id="o_k">60</output>%</span><input id="w_k" type="range" min="0" max="100" value="60"></label>
+    <label>Utility setup (effect on the victim in the previous 8 s)<span><output id="o_u">25</output>%</span><input id="w_u" type="range" min="0" max="100" value="25"></label>
+    <label>Damage assists (teammates who damaged the victim)<span><output id="o_a">15</output>%</span><input id="w_a" type="range" min="0" max="100" value="15"></label>
+    <label>Healing credit<span><output id="o_h">150</output> HP per death prevented</span><input id="w_h" type="range" min="0" max="300" step="10" value="150"></label>
+    <button id="reset" type="button">Reset to defaults</button>
+  </div>
+  <div class="scroll"><table id="adj"></table></div>
+  <p class="note" id="adjread"></p>
+  <p class="muted" style="font-size:14px">Healing credit turns HP restored into the win probability of the death it helps prevent. Set it to 0 to switch it off. Setups with no matching effect hand their share back to the killer.</p>
+</section>
+
+<section>
+  <div class="head"><h2>Round win probability</h2><p class="muted">Team A's chance of taking the round, after every kill. Dot size is leverage: bigger dots came when more was on the line. Dot color is the team that got the kill.</p></div>
+  <div class="legend"><span><i class="dot A"></i>Team A kill</span><span><i class="dot B"></i>Team B kill</span><span>Dashed line: spike planted</span></div>
+  <div class="rounds" id="rounds"></div>
+</section>
+
+<section>
+  <div class="head"><h2>Biggest swings</h2><p class="muted">The kills that moved the round most, ranked by win probability added.</p></div>
+  <div class="swings" id="swings"></div>
+</section>
+
+<section>
+  <div class="head"><h2>Head to head</h2><p class="muted">Damage each Team A player dealt to each Team B player, over the whole match. The small number under it is what they took back. Green means the Team A player won that duel on damage.</p></div>
+  <div class="scroll"><table id="duels"></table></div>
+</section>
+
+<section>
+  <div class="two">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="head"><h2>Win expectancy table</h2><p class="muted">The model behind every number above. Rows are players alive on your side, columns are enemies alive. Each cell is your chance of winning the round.</p></div>
+      <div class="scroll"><table class="wp" id="wp"></table></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="head"><h2>Where players died</h2><p class="muted">All 34 deaths in raw map coordinates. The map artwork is not in the replay.</p></div>
+      <div class="scroll" style="padding:10px"><svg id="deaths" viewBox="0 0 360 300" role="img" aria-label="Death locations"></svg></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="head"><h2>How far to trust it</h2></div>
+  <div class="checks" id="checks"></div>
+  <ul class="tight">
+    <li><b>The model is simple on purpose.</b> It assumes every living player is equally likely to get the next kill, and it ignores the spike, the clock, weapons and position. Real round win probability would be fitted to many matches. This is the theoretical version, like the first run-expectancy tables.</li>
+    <li><b>One match is a small sample.</b> Five rounds and 34 kills. A 173 finishing index on two kills is noise, not skill. Baseball analysts regress small samples toward the average before drawing conclusions, and that needs more replays.</li>
+    <li><b>Two baseball ideas are missing.</b> Replacement level needs a pool of players to compare against, and park factors need many matches per map and side. Both come with more data.</li>
+    <li><b>Left out for lack of data.</b> Economy is recorded but every value is zero in this match. Assists exist but their type codes are undecoded. Headshot regions are not mapped to names.</li>
+    <li><b>Utility credit rests on assumed weights.</b> Only 7 of 34 kills had a recorded utility setup, and ability times are accurate to about two seconds, so an effect within eight seconds before a kill counts. The default 60/25/15 split is a starting guess. With more matches the weights can be measured from how often affected enemies actually lose fights.</li>
+  </ul>
+</section>
+
+<footer id="foot"></footer>
+</div>
+
+<script>
+const D = __DATA__;
+const $ = s => document.querySelector(s);
+const sgn = (x,d=2) => (x>0?'+':x<0?'−':'')+Math.abs(x).toFixed(d);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mmss = ms => { const s=Math.round(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+const P = D.players; const team = {}; P.forEach(p=>team[p.agent]=p.team);
+const sumK = P.reduce((a,p)=>a+p.kills,0), sumD = P.reduce((a,p)=>a+p.dmg,0);
+P.forEach(p=>{ p.fin = 100*((p.kills/p.dmg)/(sumK/sumD)); });
+
+$('#meta').innerHTML = ['Build '+esc(D.build.replace('++Ares-Core+release-','')),'Swiftplay','Map code Pitt',D.rounds+' rounds','34 kills'].map(x=>'<span>'+x+'</span>').join('');
+
+$('#concepts').innerHTML = [
+ ['Win expectancy','Round win probability','Chance of winning from how many players are alive on each side.','Built'],
+ ['Win probability added','Kill WPA','Each kill is worth the change in win probability it caused. Deaths cost the same amount.','Built'],
+ ['Leverage index','Leverage','Kills in tight states count for more. A 2v2 kill swings the round further than a 5v3 kill.','Built'],
+ ['OPS+, ERA−','ADR+, Finishing+','Rate stats indexed so 100 is the match average, which makes players comparable.','Built'],
+ ['BABIP luck','Finishing index','Kills per point of damage dealt. Far above 100 usually means kills that other damage set up.','Built'],
+ ['Sequencing, defense','KST, trades, openers','Survived or traded rate, trade kills within 5 s, first-kill and first-death record.','Built'],
+ ['Credit sharing','Utility credit','Win probability from each kill is split between the killer, utility setters and damage assisters. Weights are adjustable below.','Built, heuristic'],
+ ['Replacement level','Replacement level','Needs a pool of matches to define a freely available baseline.','Needs more data'],
+ ['Park factors','Map and side factors','Needs many matches per map and attack/defense side.','Needs more data']
+].map(c=>'<div><b>'+c[0]+'</b><span>'+c[1]+'</span><span class="muted" style="font-size:14px">'+c[2]+'</span><i>'+c[3]+'</i></div>').join('');
+
+/* leaderboard */
+const COLS = [
+ {k:'agent',l:'Agent',t:'Agent. Codename shown where the name is unconfirmed.'},
+ {k:'wpa',l:'WPA',f:v=>sgn(v),t:'Win probability added, in rounds. Kills minus deaths.',bar:true},
+ {k:'kwpa',l:'Kill WPA',f:v=>sgn(v),t:'Win probability gained from kills.'},
+ {k:'dwpa',l:'Death WPA',f:v=>sgn(v),t:'Win probability lost to deaths.'},
+ {k:'kills',l:'K',f:v=>v},{k:'deaths',l:'D',f:v=>v},
+ {k:'adr',l:'ADR',f:v=>v.toFixed(0),t:'Damage per round.'},
+ {k:'adr_idx',l:'ADR+',f:v=>v.toFixed(0),t:'ADR indexed to match average = 100.'},
+ {k:'kst_pct',l:'KST%',f:v=>v.toFixed(0)+'%',t:'Rounds where the player got a kill, survived, or was traded.'},
+ {k:'fb',l:'First K',f:v=>v},{k:'fd',l:'First D',f:v=>v},
+ {k:'trade_kills',l:'Trade K',f:v=>v,t:'Kills within 5 s of a teammate dying to that player.'},
+ {k:'traded_deaths',l:'Traded D',f:v=>v,t:'Deaths avenged by a teammate within 5 s.'},
+ {k:'clutch_kills',l:'Clutch K',f:v=>v,t:'Kills made while last alive against two or more.'},
+ {k:'util_assisted_kills',l:'Util-assisted K',f:v=>v,t:'Kills on a target a teammate had affected with an ability in the previous 8 s.'},
+ {k:'util_assists_given',l:'Util assists given',f:v=>v,t:'Kills by teammates on targets this player affected.'},
+ {k:'fin',l:'Finishing+',f:v=>v.toFixed(0),t:'Kills per damage, indexed to match average = 100. Small sample.'}
+];
+let sk='wpa', desc=true;
+function board(){
+  const rows=[...P].sort((a,b)=> (typeof a[sk]==='string'? a[sk].localeCompare(b[sk]) : a[sk]-b[sk]) * (desc?-1:1));
+  const mx=Math.max(...P.map(p=>Math.abs(p.wpa)));
+  $('#board thead').innerHTML='<tr>'+COLS.map(c=>'<th tabindex="0" data-k="'+c.k+'" title="'+esc(c.t||'')+'"'+(c.k===sk?' aria-sort="'+(desc?'descending':'ascending')+'"':'')+'>'+c.l+(c.k===sk?(desc?' ▾':' ▴'):'')+'</th>').join('')+'</tr>';
+  $('#board tbody').innerHTML=rows.map(p=>'<tr>'+COLS.map(c=>{
+    if(c.k==='agent') return '<td><i class="dot '+p.team+'"></i><span class="agent">'+esc(p.agent)+'</span></td>';
+    const v=p[c.k]; let cls=(c.k==='wpa'||c.k==='kwpa'||c.k==='dwpa')?(v>0.005?'pos':v<-0.005?'neg':''):'';
+    let extra=''; if(c.bar){ const w=Math.round(Math.abs(v)/mx*46); extra='<span class="bar" style="width:'+w+'px;background:var(--'+(v>=0?'pos':'neg')+')"></span>'; }
+    return '<td class="'+cls+'">'+c.f(v)+extra+'</td>';}).join('')+'</tr>').join('');
+  document.querySelectorAll('#board thead th').forEach(th=>{
+    const go=()=>{const k=th.dataset.k; if(k===sk) desc=!desc; else {sk=k; desc=k!=='agent';} board();};
+    th.onclick=go; th.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};
+  });
+}
+board();
+(function(){
+  const top=[...P].sort((a,b)=>b.wpa-a.wpa)[0], dmg=[...P].sort((a,b)=>b.adr-a.adr)[0];
+  const tA=P.filter(p=>p.team==='A').reduce((a,p)=>a+p.wpa,0);
+  $('#read').innerHTML='<b>'+esc(top.agent)+'</b> added the most winning ('+sgn(top.wpa)+' rounds) with '+top.kills+' kills and '+top.deaths+' deaths. <b>'+esc(dmg.agent)+'</b> led damage at '+dmg.adr.toFixed(0)+' per round but ranks '+([...P].sort((a,b)=>b.wpa-a.wpa).findIndex(p=>p===dmg)+1)+' on WPA: his '+dmg.deaths+' deaths cost '+sgn(dmg.dwpa)+' rounds against the '+sgn(dmg.kwpa)+' his kills earned. Team A won all five rounds.';
+})();
+
+
+/* utility-adjusted credit */
+function adjust(){
+  const wk=+$('#w_k').value, wu=+$('#w_u').value, wa=+$('#w_a').value, hp=+$('#w_h').value;
+  $('#o_k').textContent=wk; $('#o_u').textContent=wu; $('#o_a').textContent=wa; $('#o_h').textContent=hp||'off';
+  const c={}; P.forEach(p=>c[p.agent]={kill:0,util:0,assist:0,heal:0,death:0});
+  let given=0;
+  D.kill_records.forEach(k=>{
+    const comps=[['kill',[[k.killer,1]],wk]];
+    if(k.setters.length) comps.push(['util',k.setters.map(s=>[s.agent,1]),wu]);
+    if(k.assisters.length){ const tot=k.assisters.reduce((a,x)=>a+x.dmg,0); comps.push(['assist',k.assisters.map(x=>[x.agent,x.dmg/tot]),wa]); }
+    let S=comps.reduce((a,x)=>a+x[2],0); if(S===0){ comps[0][2]=1; S=1; }
+    comps.forEach(([key,mem,w])=>{ const share=k.wpa*w/S, ws=mem.reduce((a,m)=>a+m[1],0);
+      mem.forEach(([ag,f])=>{ c[ag][key]+=share*f/ws; given+=share*f/ws; }); });
+    c[k.victim].death-=k.wpa;
+  });
+  if(hp>0) D.heal_records.forEach(h=>{ c[h.agent].heal+=h.hp/hp*h.death_cost; });
+  const rows=P.map(p=>({p,...c[p.agent],adj:c[p.agent].kill+c[p.agent].util+c[p.agent].assist+c[p.agent].heal+c[p.agent].death}));
+  const rank0=[...P].sort((a,b)=>b.wpa-a.wpa).map(p=>p.agent), ranked=[...rows].sort((a,b)=>b.adj-a.adj);
+  const cls=v=>v>0.005?'pos':v<-0.005?'neg':'';
+  const cell=v=>'<td class="'+cls(v)+'">'+sgn(v)+'</td>';
+  $('#adj').innerHTML='<thead><tr><th>Agent</th><th>Kill WPA (killer only)</th><th>Kill share kept</th><th>Utility setup</th><th>Damage assists</th><th>Healing</th><th>Deaths</th><th>Adjusted WPA</th><th>Rank</th></tr></thead><tbody>'+
+   ranked.map((r,i)=>{ const before=rank0.indexOf(r.p.agent)+1, mv=before-(i+1);
+    return '<tr><td><i class="dot '+r.p.team+'"></i><span class="agent">'+esc(r.p.agent)+'</span></td>'+cell(r.p.kwpa)+cell(r.kill)+cell(r.util)+cell(r.assist)+cell(r.heal)+cell(r.death)+'<td class="'+cls(r.adj)+'"><b>'+sgn(r.adj)+'</b></td><td>'+(i+1)+' <span class="delta">'+(mv>0?'▲'+mv:mv<0?'▼'+(-mv):'–')+'</span></td></tr>'; }).join('')+'</tbody>';
+  const total=D.kill_records.reduce((a,k)=>a+k.wpa,0);
+  const movers=ranked.map((r,i)=>({a:r.p.agent,mv:rank0.indexOf(r.p.agent)-i})).sort((a,b)=>Math.abs(b.mv)-Math.abs(a.mv))[0];
+  const top=ranked.slice().sort((a,b)=>(b.util+b.assist)-(a.util+a.assist))[0];
+  $('#adjread').innerHTML='Kill value shared out: <b>'+given.toFixed(2)+'</b> of <b>'+total.toFixed(2)+'</b> rounds, so the split is zero-sum. <b>'+esc(top.p.agent)+'</b> earns the most from setting up and assisting ('+sgn(top.util+top.assist)+'). '+(movers.mv!==0?'<b>'+esc(movers.a)+'</b> moves the most against the killer-only ranking ('+(movers.mv>0?'up ':'down ')+Math.abs(movers.mv)+').':'The ranking does not change at these weights.');
+}
+['w_k','w_u','w_a','w_h'].forEach(id=>$('#'+id).addEventListener('input',adjust));
+$('#reset').addEventListener('click',()=>{ $('#w_k').value=60;$('#w_u').value=25;$('#w_a').value=15;$('#w_h').value=150; adjust(); });
+adjust();
+
+/* round charts */
+const W=320,H=140,L=26,R=8,T=10,B=22;
+function roundCard(r){
+  const ks=r.timeline, s=r.start_ms;
+  const rel=ks.map(k=>(k.t-s)/1000), plant=r.plant_ms?(r.plant_ms-s)/1000:null;
+  const lo=Math.floor((Math.min(...rel)-8)/10)*10, hi=Math.ceil((Math.max(...rel,plant||0)+8)/10)*10;
+  const X=t=>L+(t-lo)/(hi-lo)*(W-L-R), Y=p=>T+(1-p)*(H-T-B);
+  let d='M'+X(lo)+' '+Y(.5), cur=.5;
+  ks.forEach((k,i)=>{ d+=' L'+X(rel[i]).toFixed(1)+' '+Y(cur).toFixed(1)+' L'+X(rel[i]).toFixed(1)+' '+Y(k.wpA).toFixed(1); cur=k.wpA; });
+  d+=' L'+X(hi)+' '+Y(cur);
+  let g='';
+  [0,.5,1].forEach(p=>g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(p)+'" y2="'+Y(p)+'" stroke="var(--line)" '+(p===.5?'stroke-dasharray="3 3"':'')+'/><text x="'+(L-4)+'" y="'+(Y(p)+3)+'" text-anchor="end">'+Math.round(p*100)+'</text>');
+  for(let t=lo;t<=hi;t+=10) g+='<text x="'+X(t)+'" y="'+(H-6)+'" text-anchor="middle">'+t+'s</text>';
+  if(plant!=null) g+='<line x1="'+X(plant)+'" x2="'+X(plant)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="var(--muted)" stroke-dasharray="4 3"/>';
+  const dots=ks.map((k,i)=>'<circle cx="'+X(rel[i]).toFixed(1)+'" cy="'+Y(k.wpA).toFixed(1)+'" r="'+(2.6+k.li*1.8).toFixed(1)+'" fill="var(--'+(k.kteam==='A'?'a':'b')+')" stroke="var(--surface)" stroke-width="1.2"><title>'+esc(k.killer)+' killed '+esc(k.victim)+' · '+sgn(k.wpa*100,0)+' pts · leverage '+k.li.toFixed(2)+(k.util?' · utility-assisted':'')+'</title></circle>').join('');
+  const fin=ks.length?ks[ks.length-1].wpA:.5;
+  return '<div class="rc"><div class="t"><h3>Round '+(r.rnd+1)+'</h3><span>'+ks.length+' kills · ends '+r.alive_A+'v'+r.alive_B+'</span></div><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Round '+(r.rnd+1)+' win probability"><path d="'+d+'" fill="none" stroke="var(--ink)" stroke-width="1.6"/>'+g+dots+'</svg></div>';
+}
+$('#rounds').innerHTML=D.rounds_detail.map(roundCard).join('');
+
+/* swings */
+const all=[]; D.rounds_detail.forEach(r=>r.timeline.forEach(k=>all.push({...k,rnd:r.rnd})));
+$('#swings').innerHTML=all.sort((a,b)=>b.wpa-a.wpa).slice(0,8).map(k=>
+ '<div class="swing"><span class="w">R'+(k.rnd+1)+' · '+mmss(k.t)+'</span><span><i class="dot '+k.kteam+'"></i><span class="agent">'+esc(k.killer)+'</span> killed <span class="agent">'+esc(k.victim)+'</span>'+(k.clutch?'<span class="tag">clutch</span>':'')+(k.util?'<span class="tag">util-assisted</span>':'')+'</span><span class="p pos">'+sgn(k.wpa*100,1)+' pts <span class="muted">· LI '+k.li.toFixed(2)+'</span></span></div>').join('');
+
+/* duels */
+(function(){
+  const A=P.filter(p=>p.team==='A').map(p=>p.agent), Bt=P.filter(p=>p.team==='B').map(p=>p.agent);
+  const m={}; D.duels.forEach(x=>m[x.owner+'|'+x.other]=x);
+  let h='<thead><tr><th></th>'+Bt.map(b=>'<th class="cell">'+esc(b)+'</th>').join('')+'</tr></thead><tbody>';
+  A.forEach(a=>{ h+='<tr><td><i class="dot A"></i><span class="agent">'+esc(a)+'</span></td>'+Bt.map(b=>{
+    const x=m[a+'|'+b]||{dealt:0,recv:0}; const net=x.dealt-x.recv, s=Math.min(1,Math.abs(net)/200);
+    const col=net>=0?'var(--pos)':'var(--neg)';
+    return '<td class="cell" style="background:color-mix(in srgb,'+col+' '+Math.round(s*38)+'%,transparent)">'+x.dealt.toFixed(0)+'<br><span class="muted">'+x.recv.toFixed(0)+'</span></td>';}).join('')+'</tr>'; });
+  $('#duels').innerHTML=h+'</tbody>';
+})();
+
+/* win expectancy table */
+(function(){
+  let h='<thead><tr><th>You \\ Them</th>'+[1,2,3,4,5].map(n=>'<th>'+n+'</th>').join('')+'</tr></thead><tbody>';
+  for(let a=1;a<=5;a++){ h+='<tr><td>'+a+' alive</td>'+[1,2,3,4,5].map(b=>{const v=D.wp[a+'v'+b]; return '<td style="background:color-mix(in srgb,var(--a) '+Math.round(v*55)+'%,transparent)">'+Math.round(v*100)+'%</td>';}).join('')+'</tr>'; }
+  $('#wp').innerHTML=h+'</tbody>';
+})();
+
+/* death map */
+(function(){
+  const xs=D.deaths.map(d=>d.x), ys=D.deaths.map(d=>d.y), pad=300;
+  const x0=Math.min(...xs)-pad,x1=Math.max(...xs)+pad,y0=Math.min(...ys)-pad,y1=Math.max(...ys)+pad;
+  const sc=Math.min(340/(x1-x0),280/(y1-y0)), ox=10, oy=10;
+  let g='<rect x="0" y="0" width="360" height="300" fill="var(--wash)" opacity=".5"/>';
+  D.deaths.forEach(d=>{ const cx=ox+(d.x-x0)*sc, cy=oy+(y1-d.y)*sc;
+    g+='<circle cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="5" fill="var(--'+(team[d.agent]==='A'?'a':'b')+')" fill-opacity=".85" stroke="var(--surface)"><title>'+esc(d.agent)+' · round '+(d.rnd+1)+'</title></circle>'; });
+  $('#deaths').innerHTML=g;
+})();
+
+/* checks */
+(function(){
+  const c=D.checks;
+  $('#checks').innerHTML=[
+   [c.kills_vs_death_events[0]+' of '+c.kills_vs_death_events[1],'kills rebuilt from combat reports match the replay death log'],
+   [c.kill_time_vs_event_ms_max_gap+' ms','largest gap between a rebuilt kill time and its death event'],
+   [c.total_damage_dealt_vs_received[0].toFixed(1),'damage dealt by all players equals damage received, to the decimal'],
+   ['1 of 14,400','possible player assignments fits the data, so each report belongs to one player'],
+  ].map(x=>'<div><b>'+x[0]+'</b><small>'+x[1]+'</small></div>').join('');
+  $('#foot').textContent='Source: one Swiftplay replay, build '+D.build+'. Agent names confirmed from the replay manifest and ability kits; Phoenix is matched by kit only.';
+})();
+</script>

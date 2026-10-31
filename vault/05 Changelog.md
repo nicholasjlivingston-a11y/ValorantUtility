@@ -1,0 +1,28 @@
+---
+type: changelog
+status: current
+updated: 2026-10-30
+tags: [valosaber, changelog]
+---
+# Changelog
+
+Newest first. One line per change that someone starting fresh would care about. Link to the note that has the detail.
+
+## 2026-10-30
+- Built this vault and the project handoff (`claude/START_HERE.md`).
+- Saved the patched table builder, page template and site build script to the project. The page regenerates byte-for-byte. See [[Run Order]].
+- Stage 1 utility credit published: zero-sum split with sliders ([[Utility Credit]], [[ADR-006 Utility credit is zero-sum and adjustable]]).
+- Pipeline prototype: 183 KB shard, `ingest.py` verifies checksums and merges into parts of 8 MB or less ([[Data Pipeline]]).
+- Fixed a join that dropped 3 players from the position data ([[Replay Data Guide]]).
+- Agent names: Iris is Miks (ID confirmed), Sequoia is Iso (ID confirmed, not Tejo), Pine is Veto (kit plus user statement) ([[Agents]]).
+
+## 2026-10-29
+- Researched sabermetrics ([[07 Sabermetrics Notes]]).
+- Built Valosaber v1 from the combat reports: WPA, leverage, ADR+, KST, trades, clutch, openers ([[Metrics Index]]).
+- Resolved combat-report owners by damage reciprocity ([[ADR-001 Owner resolution by damage reciprocity]]).
+- Wrote the coding-agent briefs ([[Coding Agent Brief]]).
+
+## 2026-10-28
+- First contact with the replay data. Google Drive connector could read file metadata but not download a 159 MB zip (10 MB limit).
+- Parsed the exported tables; built the ability-effects table. Fixed the Swiftplay roster and half-start handling in a patched `build_table.py` ([[Run Order]]).
+- Created the lookup file for names ([[Agents]]).
