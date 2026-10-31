@@ -31,6 +31,15 @@ Text files only read and write local files. `run_pipeline.py` uses `subprocess` 
 ## Repository note
 A 38 MB binary in git stays in the history for good. Preferred: keep `bin/vrfkit` out of the repo (add it to `.gitignore`, or use Git LFS or a release asset). The zip is already committed; do not add the unpacked binary on top of it.
 
+## vrfkit in Colab with a Gemini agent
+Colab machines are temporary, so the binary must be put there at the start of every session.
+- Keep one copy of `vrfkit` in Google Drive (`MyDrive/valosaber/bin/vrfkit`), not in git.
+- `parser/vrfkit.sha256` pins the exact binary (SHA-256 `afe615e8...c04a`, 38,327,056 bytes, from this package). `parser/colab_bootstrap.py` mounts Drive, copies the file, checks the hash, marks it executable, and stops on a mismatch. It never downloads and never runs the binary. Tested locally for both a match and a mismatch; not yet tested inside Colab.
+- When vrfkit is updated, replace the Drive copy and the `.sha256` file in the same commit, and write the new build in [[05 Changelog]].
+- Replays and outputs also live in Drive; Colab's disk is lost when the session ends.
+- Give the agent a GitHub token only through Colab Secrets (a fine-grained token limited to this one repo, contents write). Never paste it in a cell or a notebook.
+- The agent must run `colab_bootstrap.py` first and must not fetch a binary from anywhere else.
+
 ## Next steps
 1. Decide whether the CSV route or the parquet shard route is the main one. They should not both define the utility tables.
 2. If CSV stays: ask the coding agent what produces those eight CSV tables and for a sample match.

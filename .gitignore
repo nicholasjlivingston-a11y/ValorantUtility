@@ -2,3 +2,7 @@
 .obsidian/workspace*.json
 *.vrf
 __pycache__/
+bin/
+vrfkit
+raw_replays/
+parsed_outputs/

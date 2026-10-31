@@ -9,6 +9,7 @@ tags: [valosaber, changelog]
 Newest first. One line per change that someone starting fresh would care about. Link to the note that has the detail.
 
 ## 2026-10-30 (latest)
+- Colab plan for vrfkit: kept in Drive, pinned by SHA-256, verified by `parser/colab_bootstrap.py`; `bin/` and replays are git-ignored ([[Bootstrap Package]]).
 - Drafted [[Unified Pipeline Brief]]: one core fact layer, a stats contract and a meta contract.
 - Reviewed the pipeline bootstrap package; not integrated, nothing run ([[Bootstrap Package]], [[Ability Ontology]]).
 - Added Hush (Duelist, patch 13.09) to the class table; 30 agents confirmed ([[Agent Classes]]). Noted an agent-count mismatch to check.
