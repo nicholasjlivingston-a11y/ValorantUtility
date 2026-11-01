@@ -20,6 +20,7 @@ tags: [valosaber, status]
 - Peer-group baselines (overall, class, agent) built and self-tested; waiting for data. See [[Baselines]] and [[ADR-007 Three peer groups for comparison]].
 
 ## In progress
+- Bootstrap package v3 built 2026-11-01 for both agents (see [[Bootstrap Package]]); waiting for the user to hand it to the coding agent together with a registered 13.09-capable vrfkit.
 - Master prompt for the coding agent written, with the meta agent's addendum ([[Master Parser Prompt]]). The 13.09 vrfkit the user says is active must be registered before the batch will run on 13.09 replays ([[04 Open Questions]] question 16).
 - First real batch run in Colab with the actual vrfkit ([[Run Order]]). Swiftplay only is verified; standard-mode output is untested.
 - [[Unified Pipeline Brief]] drafted; the user needs to check the meta contract before it goes to the coding agent.

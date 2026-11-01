@@ -6,6 +6,14 @@ tags: [valosaber, pipeline, bootstrap]
 ---
 # Bootstrap package
 
+## Version 3 (2026-11-01), the one to hand to agents
+Built by `python3 tools/build_bootstrap.py OUT.zip --source-zip <old bootstrap> --golden-export <export dir>`; it mirrors the repo layout and re-checks every file hash after reopening. Contents: `README.md`, `AGENT_TASK.md` (master prompt plus addendum), `docs/EXTRACTION_REQUIREMENTS.md`, `knowledge/` (Reference, Decisions, Metrics, shard schema, run order, current state, open questions), `parser/`, `data/` (lookup, classes, registry), the meta agent's `scripts/ schemas/ config/ ontology/ run_pipeline.py` unchanged, `golden_sample/` (shard, events, manifest, expected values), `bin/README.txt`, `PACKAGE_MANIFEST.json`. About 0.4 MB.
+- **vrfkit is deliberately left out.** The old bootstrap's binary is the 13.08-era build (`afe615e8...c04a`); including it invites the agent to run it on 13.09 replays. Keep the real one in Drive `valosaber/bin/`; `colab_bootstrap.py` finds it and refuses anything unregistered. `--with-vrfkit` can pack a registered binary if wanted.
+- Tested from a fresh extraction: golden test passes (EXPORT_PIPELINE_VALIDATED), an unregistered file is refused, all scripts compile. Not yet run in Colab.
+- Rebuild it after any change to the parser, registry or master prompt, and note the repo commit (stored in the manifest).
+
+## Version 1 (reviewed 2026-10-30)
+
 File: `parser/valorant_complete_pipeline_bootstrap_package (2).zip` (8.7 MB, 38 MB unpacked). Reviewed 2026-10-30. Nothing from it was run.
 
 ## Contents

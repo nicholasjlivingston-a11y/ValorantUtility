@@ -1,52 +1,67 @@
 #!/usr/bin/env python3
-"""Colab bootstrap: put a verified vrfkit binary in ./bin and stop if anything is off.
+"""Colab bootstrap: install a REGISTERED vrfkit binary into ./bin and refuse everything else.
 
-Run in a Colab cell:  %run parser/colab_bootstrap.py   (or: python3 parser/colab_bootstrap.py [DRIVE_PATH])
+Run in a Colab cell:  !python3 parser/colab_bootstrap.py   [optional: path to a vrfkit file or a zip holding bin/vrfkit]
 
-1. Mounts Google Drive when running in Colab.
-2. Copies vrfkit from DRIVE_PATH to ./bin/vrfkit. With no argument it looks in MyDrive/valosaber/bin/ for the bootstrap zip, then for a loose vrfkit file.
-   DRIVE_PATH may also be a bootstrap .zip that holds bin/vrfkit; the file is read from inside the zip.
-3. Checks its SHA-256 against parser/vrfkit.sha256 and refuses to continue on a mismatch.
-4. Marks it executable. It never downloads from anywhere else and never runs the binary.
-Not yet tested inside Colab; the hash check was tested locally.
+Looks for candidates in this order (first registered one wins):
+  1. the path you pass, if any
+  2. ./bin/vrfkit already in the package
+  3. MyDrive/valosaber/bin/ : a loose 'vrfkit' file, then every .zip that holds bin/vrfkit
+A candidate is accepted only if its SHA-256 appears in parser/vrfkit.sha256. Every candidate's hash is printed, so an
+unregistered binary can be sent to the maintainer (parser/register_vrfkit.py prints the registry entry).
+It never downloads anything and never runs the binary.
 """
-import hashlib, os, stat, sys
+import hashlib, stat, sys, zipfile
 from pathlib import Path
 
-BIN = "/content/drive/MyDrive/valosaber/bin/"
-CANDIDATES = [BIN + "valorant_complete_pipeline_bootstrap_package (2).zip", BIN + "vrfkit"]
-if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
-    src = Path(sys.argv[1])
-else:
-    src = Path(CANDIDATES[0])
 here = Path(__file__).resolve().parent
 want = {ln.split()[0].lower() for ln in (here / "vrfkit.sha256").read_text().splitlines() if ln.strip()}
+DRIVE_BIN = Path("/content/drive/MyDrive/valosaber/bin")
 dst = Path("bin/vrfkit")
 
-if not src.exists():
+
+def read_candidate(p: Path):
+    if p.suffix.lower() == ".zip":
+        with zipfile.ZipFile(p) as z:
+            m = [n for n in z.namelist() if n.endswith("bin/vrfkit")]
+            return z.read(m[0]) if len(m) == 1 else None
+    return p.read_bytes()
+
+
+cands = []
+if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
+    cands.append(Path(sys.argv[1]))
+if dst.exists():
+    cands.append(dst)
+if not DRIVE_BIN.exists():
     try:
         from google.colab import drive  # only exists in Colab
         drive.mount("/content/drive")
     except ImportError:
         pass
-if not src.exists() and len(sys.argv) <= 1:
-    src = next((Path(c) for c in CANDIDATES if Path(c).exists()), src)
-if not src.exists():
-    sys.exit(f"vrfkit not found at {src}. Put it in Drive, or pass the path as an argument.")
+if DRIVE_BIN.exists():
+    cands += [DRIVE_BIN / "vrfkit"] + sorted(DRIVE_BIN.glob("*.zip"))
+cands = [c for c in dict.fromkeys(cands) if c.exists()]
+if not cands:
+    sys.exit("vrfkit not found. Put the binary (or a zip containing bin/vrfkit) in MyDrive/valosaber/bin/ or pass its path.")
 
-if src.suffix.lower() == ".zip":
-    import zipfile
-    with zipfile.ZipFile(src) as z:
-        members = [n for n in z.namelist() if n.endswith("bin/vrfkit")]
-        if len(members) != 1:
-            sys.exit(f"expected exactly one bin/vrfkit in {src}, found {members}")
-        data = z.read(members[0])
-else:
-    data = src.read_bytes()
-h = hashlib.sha256(data).hexdigest()
-if h not in want:
-    sys.exit(f"REFUSING: sha256 {h} is not in parser/vrfkit.sha256 ({len(want)} registered). Do not run this binary. To register a binary you trust, run parser/register_vrfkit.py on it and send the output.")
+chosen = None
+for c in cands:
+    data = read_candidate(c)
+    if data is None:
+        print(f"skip {c}: no single bin/vrfkit inside")
+        continue
+    h = hashlib.sha256(data).hexdigest()
+    ok = h in want
+    print(f"{'REGISTERED  ' if ok else 'unregistered'} {h}  {len(data):>10,} bytes  {c}")
+    if ok and chosen is None:
+        chosen = (c, data, h)
+if chosen is None:
+    sys.exit("REFUSING: no candidate is registered in parser/vrfkit.sha256. Do not run any of these binaries. "
+             "To register one you trust, run parser/register_vrfkit.py on it and send the output to the maintainer.")
+c, data, h = chosen
 dst.parent.mkdir(exist_ok=True)
-dst.write_bytes(data)
+if not (dst.exists() and dst.read_bytes() == data):
+    dst.write_bytes(data)
 dst.chmod(dst.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-print(f"vrfkit verified and installed at {dst} (sha256 {h[:12]}...)")
+print(f"vrfkit verified and installed at {dst} (sha256 {h[:12]}..., from {c})")

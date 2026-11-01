@@ -8,6 +8,12 @@ tags: [valosaber, changelog]
 
 Newest first. One line per change that someone starting fresh would care about. Link to the note that has the detail.
 
+## 2026-11-01
+- **Bootstrap package v3** (`tools/build_bootstrap.py`): one zip for both the statistics analyst and the meta agent. It carries the agent task (master prompt with addendum), the meta agent's 15-group requirements (`docs/EXTRACTION_REQUIREMENTS.md`, also [[Extraction Requirements]]), the knowledge notes, our code, the registry, the meta agent's earlier files unchanged, and the golden sample with expected values. vrfkit is **not** inside; see [[Bootstrap Package]].
+- Master prompt section 6 now points to the 15 data groups and the completeness statuses ([[Master Parser Prompt]]).
+- `colab_bootstrap.py` now checks every candidate (passed path, `bin/vrfkit`, loose Drive file, every zip in Drive `bin/` holding `bin/vrfkit`), prints each hash, and installs the first registered one.
+- The bootstrap the user re-attached holds the same 13.08-era vrfkit (hash `afe615e8...c04a`), so it does not add 13.09 support.
+
 ## 2026-10-31
 - Applied the meta agent's addendum ([[Master Parser Prompt]]). Code now matches it: evidence-based shard checks (no fixed player or kill counts), a separate golden regression test labelled EXPORT_PIPELINE_VALIDATED, `source_sha256` and `run_id` in every shard, a vrfkit registry keyed by binary hash, `register_vrfkit.py`.
 - **Bug fixed:** shard yaw was clipped at 327.67 degrees (10.7% of sample rows wrong). Shard schema is now version 2; the warehouse was rebuilt from the corrected sample ([[Shard Schema]]).
