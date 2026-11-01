@@ -303,7 +303,9 @@ if len(sys.argv) > 6:
     # positions at 4 Hz, quantised to int16 (world units, centidegrees)
     mv = pd.read_parquet(exp/"movement.parquet", columns=["time_ms","character_net_guid","pos_x","pos_y","pos_z","yaw"])
     CN = {}
-    for cj in Path('/root/.claude/skills/synced').glob('*/valorant-vrf/scripts/codenames.json'): CN = json.load(open(cj))['map']
+    for cj in [Path(__file__).resolve().parent / "skill" / "codenames.json", *Path('/root/.claude/skills/synced').glob('*/valorant-vrf/scripts/codenames.json')]:
+        if cj.exists(): CN = json.load(open(cj))['map']; break
+    assert CN, "codenames.json not found (expected parser/skill/codenames.json); the roster join would silently drop players"
     g2u = {}
     for a_, cp in act[["actor_net_guid","class_path"]].drop_duplicates().itertuples(index=False):
         m_ = re.search(r"/Characters/(\w+)/", str(cp))
@@ -314,13 +316,26 @@ if len(sys.argv) > 6:
     cov = float(mv.uuid.notna().mean()); mv = mv[mv.uuid.notna()].copy()
     mv["bucket"] = (mv.time_ms // 250).astype("int32")
     mv = mv.sort_values("time_ms").groupby(["uuid","bucket"], as_index=False).last()
+    def q16(s, lo, hi, name, dtype):
+        """Round to an integer and store; missing stays missing; out of range FAILS (never clipped)."""
+        r = s.round()
+        bad = r.notna() & ((r < lo) | (r > hi))
+        assert not bad.any(), f"positions_4hz: {int(bad.sum())} {name} values outside [{lo},{hi}] (min {r.min()}, max {r.max()}); refusing to clip"
+        return r.astype(dtype)
+    yaw_deg = mv.yaw
     pos = pd.DataFrame({"match_id": match_id, "uuid": mv.uuid, "t": (mv.bucket*250).astype("int32"),
-        "x": mv.pos_x.round().clip(-32767,32767).astype("int16"), "y": mv.pos_y.round().clip(-32767,32767).astype("int16"),
-        "z": mv.pos_z.round().clip(-32767,32767).astype("int16"), "yaw_cd": (mv.yaw*100).round().clip(-32767,32767).astype("int16")})
+        "x": q16(mv.pos_x, -32768, 32767, "x", "Int16"), "y": q16(mv.pos_y, -32768, 32767, "y", "Int16"),
+        "z": q16(mv.pos_z, -32768, 32767, "z", "Int16"), "yaw_cd": q16(yaw_deg * 100, 0, 36000, "yaw_cd", "UInt16")})
     T["positions_4hz"] = cat(pos, ["match_id","uuid"])
-    index = {"schema_version": 1, "match_id": match_id, "build": BUILD, "mode": MODE,
+    index = {"schema_version": 2, "match_id": match_id, "build": BUILD, "mode": MODE,
              "rounds": int(R), "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-             "position_actor_coverage": round(cov, 3), "tables": {}}
+             "position_actor_coverage": round(cov, 3),
+             "positions_4hz_conversion": {"version": "2", "bucket_ms": 250, "t": "bucket start in ms on the replay clock (time_ms // 250 * 250)",
+                 "selection": "last native observation in each 250 ms bucket, per player; no interpolation, buckets with no observation are absent",
+                 "xyz": "native world units rounded to the nearest integer, int16, no scale and no offset; out of range fails the shard",
+                 "yaw_cd": "native yaw degrees x 100 rounded, uint16, range 0 to 36000, source wraparound unchanged",
+                 "missing": "stored as null, never replaced by zero"},
+             "tables": {}}
     for name, df in T.items():
         fp = shard / f"{name}.parquet"; df.to_parquet(fp, compression="zstd", compression_level=12, index=False)
         index["tables"][name] = {"rows": int(len(df)), "bytes": fp.stat().st_size, "sha256": hashlib.sha256(fp.read_bytes()).hexdigest()}

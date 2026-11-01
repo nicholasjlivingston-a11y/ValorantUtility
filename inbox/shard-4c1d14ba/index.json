@@ -1,11 +1,20 @@
 {
- "schema_version": 1,
+ "schema_version": 2,
  "match_id": "4c1d14ba-6e21-496f-9101-1b85fa513fd8",
  "build": "++Ares-Core+release-13.08",
  "mode": "Swiftplay",
  "rounds": 5,
- "created_utc": "2026-10-31T02:05:15Z",
+ "created_utc": "2026-11-01T01:15:47Z",
  "position_actor_coverage": 1.0,
+ "positions_4hz_conversion": {
+  "version": "2",
+  "bucket_ms": 250,
+  "t": "bucket start in ms on the replay clock (time_ms // 250 * 250)",
+  "selection": "last native observation in each 250 ms bucket, per player; no interpolation, buckets with no observation are absent",
+  "xyz": "native world units rounded to the nearest integer, int16, no scale and no offset; out of range fails the shard",
+  "yaw_cd": "native yaw degrees x 100 rounded, uint16, range 0 to 36000, source wraparound unchanged",
+  "missing": "stored as null, never replaced by zero"
+ },
  "tables": {
   "players": {
    "rows": 10,
@@ -29,8 +38,15 @@
   },
   "positions_4hz": {
    "rows": 16152,
-   "bytes": 138593,
-   "sha256": "8f848c2851991c78c62d37ae85d6bf680975562f3d0d6bf45ac9654001acb897"
+   "bytes": 143080,
+   "sha256": "13ea8e0ec5c1814d7186aee54543b6a99287ec24880d04b9309320d7e13a51b9"
   }
+ },
+ "source_sha256": "541b3e9daa09b20bf85fa273e5cbd3e80185aa4ec298e765db87742b70138a53",
+ "run_id": "4c1d14ba-20261101T011544Z",
+ "source_build": "++Ares-Core+release-13.08",
+ "parser": {
+  "vrfkit_sha256": "5dd9708eda1b8069e6f1b20dd86b8da1d55b5054854d4a5e45bcea34399ab94d",
+  "repo_commit": "16a8bf1"
  }
 }

@@ -24,7 +24,7 @@ catalog = json.load(open(cat_path)) if cat_path.exists() else {"schema_version":
 
 def verify(d: Path):
     idx = json.load(open(d / "index.json"))
-    if idx.get("schema_version") != 1: return None, "unsupported schema_version"
+    if idx.get("schema_version") != 2: return None, "unsupported schema_version (need 2; version 1 shards have clipped yaw)"
     for name, meta in idx["tables"].items():
         fp = d / f"{name}.parquet"
         if not fp.exists(): return None, f"{name}: file missing"

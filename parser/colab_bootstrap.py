@@ -20,7 +20,7 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
 else:
     src = Path(CANDIDATES[0])
 here = Path(__file__).resolve().parent
-want = (here / "vrfkit.sha256").read_text().split()[0].lower()
+want = {ln.split()[0].lower() for ln in (here / "vrfkit.sha256").read_text().splitlines() if ln.strip()}
 dst = Path("bin/vrfkit")
 
 if not src.exists():
@@ -44,8 +44,8 @@ if src.suffix.lower() == ".zip":
 else:
     data = src.read_bytes()
 h = hashlib.sha256(data).hexdigest()
-if h != want:
-    sys.exit(f"REFUSING: sha256 {h} does not match parser/vrfkit.sha256 ({want}). Do not run this binary.")
+if h not in want:
+    sys.exit(f"REFUSING: sha256 {h} is not in parser/vrfkit.sha256 ({len(want)} registered). Do not run this binary. To register a binary you trust, run parser/register_vrfkit.py on it and send the output.")
 dst.parent.mkdir(exist_ok=True)
 dst.write_bytes(data)
 dst.chmod(dst.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)

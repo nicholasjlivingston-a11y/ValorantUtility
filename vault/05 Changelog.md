@@ -9,6 +9,10 @@ tags: [valosaber, changelog]
 Newest first. One line per change that someone starting fresh would care about. Link to the note that has the detail.
 
 ## 2026-10-31
+- Applied the meta agent's addendum ([[Master Parser Prompt]]). Code now matches it: evidence-based shard checks (no fixed player or kill counts), a separate golden regression test labelled EXPORT_PIPELINE_VALIDATED, `source_sha256` and `run_id` in every shard, a vrfkit registry keyed by binary hash, `register_vrfkit.py`.
+- **Bug fixed:** shard yaw was clipped at 327.67 degrees (10.7% of sample rows wrong). Shard schema is now version 2; the warehouse was rebuilt from the corrected sample ([[Shard Schema]]).
+- **Bug fixed:** the roster join read `codenames.json` from a skill folder that Colab does not have, which would have dropped 3 of 10 players.
+- The user reports a 13.09-capable vrfkit is active; it still needs registering ([[Bootstrap Package]]).
 - Merged the meta agent's master task with the analyst's needs into [[Master Parser Prompt]]. Added a build support gate (`data/vrfkit_supported_builds.json`): replays from builds the pinned vrfkit does not know, such as 13.09, stop with `unsupported_build`.
 - Delivery 5 from the coding agent rejected (same placeholder pattern, 7 matches). Added value checks (`parser/shard_checks.py`) to the batch so a shard with placeholder data is quarantined, provenance hashes in `status.json`, and `--only`. Wrote [[Raw Replay Parsing Prompt]].
 - Wrote [[Colab Agent Prompt]] (no GitHub token needed): the coding agent runs the batch pipeline from a downloaded copy of the repo and delivers shards through Drive.

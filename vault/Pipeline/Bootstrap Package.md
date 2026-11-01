@@ -38,6 +38,9 @@ A 38 MB binary in git stays in the history for good. Preferred: keep `bin/vrfkit
 - **Build support is thin at 13.08.** The source README says builds 11.06 to 13.06 were verified on 1,018 replays, but 13.08 on only 2, and one of those fails a checkpoint cross-check. It also says structured-array child rows (the kind the combat reports use) are admitted on **no** measured route yet for 13.08. Our sample decoded anyway, but treat 13.08 results as less proven than older builds.
 - **Patch 13.09 (Hush) is not supported** by this source (it lists builds through 13.08). Replays from 13.09 or later may fail or decode partially; expect to need a newer vrfkit.
 
+## vrfkit registry (added 2026-10-31)
+`data/vrfkit_supported_builds.json` lists each vrfkit binary by SHA-256 with the replay builds it contains. `parser/register_vrfkit.py <binary or bootstrap zip> --label "text"` computes the hash and the build list by reading the file as bytes, never by running it, and prints the entry (add `--write` to store it). `colab_bootstrap.py` accepts any registered hash. The user reported on 2026-10-31 that a 13.09-capable vrfkit is active; it is **not registered yet**. To register it, run the command in Colab on that file and send the output.
+
 ## vrfkit in Colab with a Gemini agent
 Colab machines are temporary, so the binary must be put there at the start of every session.
 - Keep one copy of `vrfkit` in Google Drive, not in git. As of 2026-10-31 it is held inside the bootstrap zip at `MyDrive/valosaber/bin/valorant_complete_pipeline_bootstrap_package (2).zip` (confirmed in Drive; 8,690,453 bytes). The other folder `vrfkit_bin/` holds an unrelated 40.9 MB binary of unknown origin; do not use it.

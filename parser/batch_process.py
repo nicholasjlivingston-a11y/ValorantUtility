@@ -20,7 +20,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from shard_checks import run_checks
+from shard_checks import run_checks, passed
 
 
 def sha256_file(path):
@@ -60,6 +60,7 @@ def process(vrf: Path, a, work_root: Path):
     (w / "out").mkdir(parents=True)
     log, st = [], {"match_id": mid, "source_file": vrf.name, "source_bytes": vrf.stat().st_size,
                    "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "steps": {}, "overall": "failed",
+                   "run_id": f"{mid[:8]}-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}",
                    "source_sha256": sha256_file(vrf), "vrfkit_sha256": sha256_file(a.vrfkit),
                    "repo_commit": (run(["git", "rev-parse", "--short", "HEAD"], cwd=HERE, log=None)[1] or "").strip()[:12]}
 
@@ -80,15 +81,23 @@ def process(vrf: Path, a, work_root: Path):
         st["build"] = man.get("replay_build"); st["duration_s"] = round(man.get("duration_ms", 0) / 1000, 1)
         import re as _re
         m_ = _re.search(r"release-\d+\.\d+", st["build"] or "")
-        sup = json.load(open(HERE.parent / "data" / "vrfkit_supported_builds.json"))
+        reg = json.load(open(a.registry))["binaries"]
+        sup = reg.get(st["vrfkit_sha256"])
         st["release"] = m_.group(0) if m_ else "UNKNOWN"
+        if sup is None:
+            st["steps"]["build_support"] = {"ok": False, "error": f"this vrfkit binary ({st['vrfkit_sha256'][:12]}) is not in {a.registry}; "
+                "run parser/register_vrfkit.py on it and add it before processing"}
+            st["overall"] = "unsupported_build"
+            return "unsupported_build", st
         if st["release"] not in sup["known_in_binary"]:
             st["steps"]["build_support"] = {"ok": False, "error": f"replay build {st['build']} is not one this vrfkit knows "
                 f"(newest known {sup['known_in_binary'][-1]}); output for it cannot be trusted, so nothing was built"}
             st["overall"] = "unsupported_build"
             return "unsupported_build", st
-        if st["release"] in sup["thin_support"]:
+        if st["release"] in sup.get("thin_support", []):
             st["build_note"] = "build has thin vrfkit support (see data/vrfkit_supported_builds.json)"
+        if st["release"] != "release-13.08":
+            st["build_note"] = (st.get("build_note", "") + " shard logic validated only on release-13.08; check every number on this build").strip()
         import pandas as pd
         act = pd.read_parquet(exp / "actors.parquet", columns=["class_path"])
         st["mode"] = "Swiftplay" if act.class_path.astype(str).str.contains("Swiftplay").any() else "Standard"
@@ -110,13 +119,16 @@ def process(vrf: Path, a, work_root: Path):
             if ok:
                 checks = run_checks(shard, exp)
                 st["checks"] = checks
-                if not all(c["ok"] for c in checks):
+                if not passed(checks):
                     shutil.move(str(shard), str(od / "shard_FAILED_CHECK"))
                     st["steps"]["shard"] = {"ok": False, "error": "value checks failed: " +
-                                            "; ".join(f"{c['check']} ({c['detail']})" for c in checks if not c["ok"])[:700]}
+                                            "; ".join(f"{c['check']} ({c['detail']})" for c in checks if not c["ok"] and c["level"] == "invariant")[:700]}
                     ok = False
             if ok:
                 idx = json.load(open(shard / "index.json"))
+                idx.update({"source_sha256": st["source_sha256"], "run_id": st["run_id"], "source_build": st["build"],
+                            "parser": {"vrfkit_sha256": st["vrfkit_sha256"], "repo_commit": st["repo_commit"]}})
+                json.dump(idx, open(shard / "index.json", "w"), indent=1)
                 st["rounds"] = idx.get("rounds"); st["shard_bytes"] = sum(f.stat().st_size for f in shard.iterdir())
         if not a.no_zip:
             zp = od / "export.zip"
@@ -148,9 +160,10 @@ def main():
     ap.add_argument("--vrfkit", required=True); ap.add_argument("--lookup", required=True)
     ap.add_argument("--work", default="/tmp/valosaber_work"); ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--only", nargs="+", default=None, help="process only these replay names (file name or stem)")
+    ap.add_argument("--registry", default=str(HERE.parent / "data" / "vrfkit_supported_builds.json"))
     ap.add_argument("--force", action="store_true"); ap.add_argument("--no-zip", action="store_true")
     a = ap.parse_args()
-    for k in ("replays", "outbox", "vrfkit", "lookup", "work"):  # steps run in other folders, so paths must be absolute
+    for k in ("replays", "outbox", "vrfkit", "lookup", "work", "registry"):  # steps run in other folders, so paths must be absolute
         setattr(a, k, str(Path(getattr(a, k)).resolve()))
     vrfs = sorted(p for p in Path(a.replays).glob("*.vrf"))
     if not vrfs:

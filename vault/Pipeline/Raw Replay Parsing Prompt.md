@@ -11,7 +11,7 @@ Narrower than [[Master Parser Prompt]], which supersedes it for a full rebuild; 
 For the coding agent that keeps re-running the same 15 replays and delivering placeholder tables ([[Stats Layer Delivery 1 Review]], delivery 5 on 2026-10-31). Replaces the looser [[Colab Agent Prompt]] for runs where correctness is the problem. Code: `parser/batch_process.py`, `parser/shard_checks.py`. Context: [[Run Order]], [[Bootstrap Package]].
 
 ## What changed in the code to make bad output impossible to deliver
-- `shard_checks.py` tests values, not file existence: 10 players, 5 per team; kill rows are distinct events and times vary; kills equal characterDeath events in the export; damage dealt equals damage received; all 10 players have positions that vary; shard under 8 MB; index hashes match.
+- `shard_checks.py` tests values, not file existence, and is now evidence-based (see [[Master Parser Prompt]]): players equal the replay's own roster; kill rows are distinct events and times vary; kills equal characterDeath events in the export; damage dealt equals damage received; all 10 players have positions that vary; shard under 8 MB; index hashes match.
 - `batch_process.py` runs those checks after every shard. A shard that fails is moved to `shard_FAILED_CHECK/` and the match is marked `failed_check`, so it can neither be ingested nor pushed.
 - Every `status.json` records the replay's SHA-256, the vrfkit SHA-256 and the repo commit, so stale or recycled output can be recognized.
 - `--only <name>` processes just the named replays, so the agent can no longer sweep a whole folder.
