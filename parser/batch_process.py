@@ -78,6 +78,17 @@ def process(vrf: Path, a, work_root: Path):
                 return "failed", st
         man = json.load(open(exp / "manifest.json"))
         st["build"] = man.get("replay_build"); st["duration_s"] = round(man.get("duration_ms", 0) / 1000, 1)
+        import re as _re
+        m_ = _re.search(r"release-\d+\.\d+", st["build"] or "")
+        sup = json.load(open(HERE.parent / "data" / "vrfkit_supported_builds.json"))
+        st["release"] = m_.group(0) if m_ else "UNKNOWN"
+        if st["release"] not in sup["known_in_binary"]:
+            st["steps"]["build_support"] = {"ok": False, "error": f"replay build {st['build']} is not one this vrfkit knows "
+                f"(newest known {sup['known_in_binary'][-1]}); output for it cannot be trusted, so nothing was built"}
+            st["overall"] = "unsupported_build"
+            return "unsupported_build", st
+        if st["release"] in sup["thin_support"]:
+            st["build_note"] = "build has thin vrfkit support (see data/vrfkit_supported_builds.json)"
         import pandas as pd
         act = pd.read_parquet(exp / "actors.parquet", columns=["class_path"])
         st["mode"] = "Swiftplay" if act.class_path.astype(str).str.contains("Swiftplay").any() else "Standard"
@@ -163,7 +174,7 @@ def main():
         res, st = process(v, a, work)
         print(f"[{i}/{len(vrfs)}] {v.name}: {res} ({time.time() - t:.0f}s)" +
               (f" | {st.get('mode')} {st.get('build')} rounds={st.get('rounds')}" if res != "failed" else ""))
-        if res == "failed":
+        if res in ("failed", "unsupported_build"):
             bad = [k for k, s in st["steps"].items() if not s.get("ok")]
             print("    failed step:", bad, (st["steps"][bad[0]].get("error", "")[-300:] if bad else st.get("exception", "")))
         results.append(res)

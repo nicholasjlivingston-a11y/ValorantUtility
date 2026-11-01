@@ -20,6 +20,7 @@ tags: [valosaber, status]
 - Peer-group baselines (overall, class, agent) built and self-tested; waiting for data. See [[Baselines]] and [[ADR-007 Three peer groups for comparison]].
 
 ## In progress
+- Master prompt for the coding agent written ([[Master Parser Prompt]]). Key risk: the 15 replays may be patch 13.09, which the pinned vrfkit does not support ([[04 Open Questions]] question 16).
 - First real batch run in Colab with the actual vrfkit ([[Run Order]]). Swiftplay only is verified; standard-mode output is untested.
 - [[Unified Pipeline Brief]] drafted; the user needs to check the meta contract before it goes to the coding agent.
 - Bootstrap package reviewed and in place in Drive (`valosaber/bin/`); still waiting for a decision on CSV versus shard route ([[Bootstrap Package]]). Colab run of `colab_bootstrap.py` not yet confirmed.

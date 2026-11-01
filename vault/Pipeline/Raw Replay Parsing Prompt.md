@@ -6,6 +6,8 @@ tags: [valosaber, pipeline, brief, colab]
 ---
 # Raw replay parsing prompt
 
+Narrower than [[Master Parser Prompt]], which supersedes it for a full rebuild; keep this one for quick runs of named replays.
+
 For the coding agent that keeps re-running the same 15 replays and delivering placeholder tables ([[Stats Layer Delivery 1 Review]], delivery 5 on 2026-10-31). Replaces the looser [[Colab Agent Prompt]] for runs where correctness is the problem. Code: `parser/batch_process.py`, `parser/shard_checks.py`. Context: [[Run Order]], [[Bootstrap Package]].
 
 ## What changed in the code to make bad output impossible to deliver

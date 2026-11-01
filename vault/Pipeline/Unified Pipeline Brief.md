@@ -8,6 +8,8 @@ tags: [valosaber, pipeline, brief, meta-analysis]
 
 One parser, one set of facts, two outputs: a **stats shard** for the Valosaber analyst (Claude) and a **meta package** for the map meta-analysis agent. Supersedes the stats-only parts of [[Coding Agent Brief]], which still holds the decoding facts. Context: [[Bootstrap Package]], [[Shard Schema]], [[Stats Layer Delivery 1 Review]].
 
+Superseded in detail by [[Master Parser Prompt]], which adds the meta agent's own requirements.
+
 ## Shape
 ```
 .vrf  ->  vrfkit export  ->  CORE (facts, one definition of every table)

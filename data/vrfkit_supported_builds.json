@@ -1,0 +1,38 @@
+{
+  "_comment": "Replay builds the pinned vrfkit binary (parser/vrfkit.sha256) knows, read from strings in the binary on 2026-10-31. 'verified' comes from the vrfkit source README (1,018 replays through 13.06). 13.08 was checked on 2 replays and one is not clean; its array child routes are not yet measured. Builds not listed are unsupported: do not trust any output for them.",
+  "vrfkit_sha256": "afe615e84e0d893d811190443d2f1e3e05a032bd52fbad379edc86bb55b8c04a",
+  "known_in_binary": [
+    "release-11.06",
+    "release-11.07",
+    "release-11.08",
+    "release-11.09",
+    "release-11.10",
+    "release-11.11",
+    "release-12.00",
+    "release-12.01",
+    "release-12.02",
+    "release-12.03",
+    "release-12.04",
+    "release-12.05",
+    "release-12.06",
+    "release-12.07",
+    "release-12.08",
+    "release-12.09",
+    "release-12.10",
+    "release-12.11",
+    "release-13.00",
+    "release-13.01",
+    "release-13.02",
+    "release-13.04",
+    "release-13.05",
+    "release-13.06",
+    "release-13.08"
+  ],
+  "thin_support": [
+    "release-13.08"
+  ],
+  "verified_through": "release-13.06",
+  "valosaber_logic_validated_on": [
+    "release-13.08 (one Swiftplay replay, 4c1d14ba)"
+  ]
+}
