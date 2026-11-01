@@ -39,23 +39,14 @@ Today's goal: <fill in>
 ```
 
 ## Where the files are
-Saved in the Claude project "Utility retry" (these are what a new chat can read):
-- `claude/START_HERE.md`: this handoff
-- `claude/name_lookup_build13_08.json`: agent, map and ability names with evidence
-- `claude/valosaber.py`: computes all metrics and the compact shard
-- `claude/build_table_swiftplay.py`: patched copy of the skill's table builder (the original breaks on Swiftplay)
-- `claude/valosaber_template.html` and `claude/build_site.py`: regenerate the page
-- `claude/ingest.py`: verifies and merges shards
-- `claude/data_pipeline.md`: the size-safe pipeline guide
+**GitHub (source of truth):** `nicholasjlivingston-a11y/ValorantUtility`, branch `main`: `vault/` (these notes), `parser/` (code), `data/` (lookup, classes, registry, warehouse), `inbox/`, `tools/build_bootstrap.py`, `bootstrap/valosaber_bootstrap_v3.zip` (package for the coding agents; no vrfkit inside). Attach it at the start of a chat, clone it, read this note. Process uploads with "process the inbox" ([[Queue]]).
 
-**GitHub:** `nicholasjlivingston-a11y/ValorantUtility` (branch `main`) holds `vault/`, `parser/`, `data/`, `inbox/`. Attach it at the start of a chat, clone it, and read `vault/00 START HERE.md`. Process new uploads with "process the inbox" ([[Queue]]).
+**Claude project "Utility retry"** holds copies for a chat with no repo: `claude/START_HERE.md` (this handoff), `claude/Master_Parser_Prompt.md`, `claude/Extraction_Requirements.md`, `claude/Current_State.md`, plus the code (`valosaber.py`, `batch_process.py`, `shard_checks.py`, `golden_sample_test.py`, `colab_bootstrap.py`, `register_vrfkit.py`, `ingest.py`, `baselines.py`, `build_site.py`, `build_table_swiftplay.py`, `valosaber_template.html`) and data (`name_lookup_build13_08.json`, `agent_classes.json`, `vrfkit_supported_builds.json`, `data_pipeline.md`). If the repo and the project disagree, the repo wins. Refresh the project copies at the end of any session that changed code.
 
-The published page: https://claude.ai/artifact/S1xAQwFf29rMUka9zPoa1b (private, owner only).
+Published page: https://claude.ai/artifact/S1xAQwFf29rMUka9zPoa1b (private).
 
-## Colab parsing (the coding agent's job)
-1. Clone the repo (`nicholasjlivingston-a11y/ValorantUtility`).
-2. `python3 parser/colab_bootstrap.py` mounts Drive, reads `vrfkit` from the bootstrap zip in `MyDrive/valosaber/bin/`, checks it against `parser/vrfkit.sha256`, and refuses on a mismatch.
-3. Parse replays, write shards, push to `inbox/` or save to Drive. Then say "process the inbox" here. See [[Bootstrap Package]], [[Queue]], [[Unified Pipeline Brief]].
+## Two agents, one pipeline
+The coding agent (Gemini in Colab) turns raw `.vrf` into `analytics_tables/` (meta agent's 15 data groups, [[Extraction Requirements]]) and a schema-2 `stats_shard/` (this analyst). Its task is [[Master Parser Prompt]]. Only a **registered** vrfkit may run ([[Bootstrap Package]]); the pinned one knows builds to 13.08, so 13.09 (Hush) replays need a newer vrfkit registered first. Golden test: `parser/golden_sample_test.py`.
 
 ## Rules that are not negotiable
 - **Names are confirmed or they stay as codenames.** See [[ADR-005 Names only when confirmed]].
