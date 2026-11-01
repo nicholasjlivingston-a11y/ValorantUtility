@@ -15,10 +15,20 @@ build, mode and sizes. A match whose status is 'ok' is skipped on re-run; failed
 A failure in one replay never stops the batch. <outbox>/batch_report.csv summarizes all matches.
 Nothing is guessed: a failed step leaves no partial shard behind.
 """
-import argparse, csv, json, shutil, subprocess, sys, time, zipfile
+import argparse, csv, hashlib, json, shutil, subprocess, sys, time, zipfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from shard_checks import run_checks
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for b in iter(lambda: f.read(1 << 20), b""):
+            h.update(b)
+    return h.hexdigest()
 
 
 def run(cmd, cwd=None, log=None):
@@ -49,7 +59,9 @@ def process(vrf: Path, a, work_root: Path):
         shutil.rmtree(w)
     (w / "out").mkdir(parents=True)
     log, st = [], {"match_id": mid, "source_file": vrf.name, "source_bytes": vrf.stat().st_size,
-                   "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "steps": {}, "overall": "failed"}
+                   "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "steps": {}, "overall": "failed",
+                   "source_sha256": sha256_file(vrf), "vrfkit_sha256": sha256_file(a.vrfkit),
+                   "repo_commit": (run(["git", "rev-parse", "--short", "HEAD"], cwd=HERE, log=None)[1] or "").strip()[:12]}
 
     def step(name, cmd, cwd=None):
         rc, out = run(cmd, cwd, log)
@@ -85,6 +97,14 @@ def process(vrf: Path, a, work_root: Path):
             if not ok and shard.exists():
                 shutil.rmtree(shard)
             if ok:
+                checks = run_checks(shard, exp)
+                st["checks"] = checks
+                if not all(c["ok"] for c in checks):
+                    shutil.move(str(shard), str(od / "shard_FAILED_CHECK"))
+                    st["steps"]["shard"] = {"ok": False, "error": "value checks failed: " +
+                                            "; ".join(f"{c['check']} ({c['detail']})" for c in checks if not c["ok"])[:700]}
+                    ok = False
+            if ok:
                 idx = json.load(open(shard / "index.json"))
                 st["rounds"] = idx.get("rounds"); st["shard_bytes"] = sum(f.stat().st_size for f in shard.iterdir())
         if not a.no_zip:
@@ -95,7 +115,8 @@ def process(vrf: Path, a, work_root: Path):
                         z.write(f, f"{mid}/{f.name}")
             st["export_zip_bytes"] = zp.stat().st_size
             st["steps"]["zip"] = {"ok": True}
-        st["overall"] = "ok" if st["steps"].get("shard", {}).get("ok") else "export_only"
+        st["overall"] = ("ok" if st["steps"].get("shard", {}).get("ok") else
+                         "failed_check" if (od / "shard_FAILED_CHECK").exists() else "export_only")
         if st["mode"] != "Swiftplay":
             st["warning"] = "standard-mode shard logic is untested; check the numbers before trusting them"
         return st["overall"], st
@@ -115,6 +136,7 @@ def main():
     ap.add_argument("--replays", required=True); ap.add_argument("--outbox", required=True)
     ap.add_argument("--vrfkit", required=True); ap.add_argument("--lookup", required=True)
     ap.add_argument("--work", default="/tmp/valosaber_work"); ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--only", nargs="+", default=None, help="process only these replay names (file name or stem)")
     ap.add_argument("--force", action="store_true"); ap.add_argument("--no-zip", action="store_true")
     a = ap.parse_args()
     for k in ("replays", "outbox", "vrfkit", "lookup", "work"):  # steps run in other folders, so paths must be absolute
@@ -126,6 +148,12 @@ def main():
         sys.exit(f"vrfkit not found at {a.vrfkit}; run parser/colab_bootstrap.py first")
     Path(a.outbox).mkdir(parents=True, exist_ok=True)
     work = Path(a.work); work.mkdir(parents=True, exist_ok=True)
+    if a.only:
+        want = {Path(x).stem for x in a.only}
+        vrfs = [v for v in vrfs if v.stem in want]
+        missing = want - {v.stem for v in vrfs}
+        if missing:
+            sys.exit(f"--only names not found in {a.replays}: {sorted(missing)}")
     if a.limit:
         vrfs = vrfs[: a.limit]
     print(f"{len(vrfs)} replay(s) to consider")
@@ -142,7 +170,7 @@ def main():
     rows = []
     for sp in sorted(Path(a.outbox).glob("*/status.json")):
         s = json.load(open(sp))
-        rows.append({k: s.get(k) for k in ("match_id", "overall", "mode", "build", "rounds", "duration_s", "source_bytes",
+        rows.append({k: s.get(k) for k in ("match_id", "overall", "mode", "build", "rounds", "duration_s", "source_sha256", "vrfkit_sha256", "repo_commit", "source_bytes",
                                             "export_bytes", "shard_bytes", "export_zip_bytes", "warning", "note")})
     if rows:
         with open(Path(a.outbox) / "batch_report.csv", "w", newline="") as f:

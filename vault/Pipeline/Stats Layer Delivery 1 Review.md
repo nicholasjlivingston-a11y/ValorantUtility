@@ -25,3 +25,6 @@ Decode failures were filled with defaults instead of nulls.
 
 ## Action
 Resend with the updated brief. Acceptance: run the checks on the Swiftplay sample `4c1d14ba` (34 kills, 5 rounds, 10 players, damage dealt equals damage received) and paste the output. See [[Run Order]] for how I validate.
+
+## Delivery 5 (2026-10-31): rejected
+Nine tables over 7 matches (129 rounds, 941 kills, 385,281 position rows). Same pattern as delivery 1: 941 kill rows but 1 distinct (round, killer, victim), all at time 0 and all 'Vandal'; every damage 150 and lethal; all rounds 0 to 90,000 ms; economy 3,900 / 2,100 / Heavy on every row; all casts `CharacterUltimateUsed` at 0; players 14 rows with no match ID; `norm_x` from -50,845 to 15,101 with only 42% inside 0 to 1. The match IDs, per-match round counts and position times looked real, so the parser found the structure but defaulted the detail columns. No `quality.json`. A prior attachment (delivery 3 and its "independent audit") arrived as empty 22-byte zips. See [[Raw Replay Parsing Prompt]] for the fix.
