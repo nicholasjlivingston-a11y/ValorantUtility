@@ -3,7 +3,8 @@
 
 usage: tools/build_bootstrap.py OUT.zip [--with-vrfkit PATH] [--source-zip OLD_BOOTSTRAP.zip] [--golden-export DIR]
  --source-zip     previous bootstrap; its meta-agent files (scripts/, schemas/, config/, ontology/, run_pipeline.py) are kept
- --golden-export  folder with the golden sample export (only events.parquet and manifest.json are packed)
+ --golden-export  folder with the golden sample export (events.parquet and manifest.json are packed)
+ --golden-full    also pack the whole export as golden_sample/export_full.zip (needed to run parser/meta_tables_test.py)
  --with-vrfkit    include a binary; refused unless its SHA-256 is in parser/vrfkit.sha256. Default: not included.
 """
 import argparse, hashlib, json, re, subprocess, sys, zipfile
@@ -15,8 +16,9 @@ ap.add_argument("out")
 ap.add_argument("--with-vrfkit")
 ap.add_argument("--source-zip")
 ap.add_argument("--golden-export")
+ap.add_argument("--golden-full", action="store_true")
 a = ap.parse_args()
-VERSION, BUILT = "3.0.0", "2026-11-01"
+VERSION, BUILT = "3.1.0", "2026-11-01"
 sha = lambda b: hashlib.sha256(b).hexdigest()
 files = {}  # path in zip -> bytes
 
@@ -44,7 +46,7 @@ V = ROOT / "vault"
 for sub in ("Reference", "Decisions", "Metrics"):
     add_tree(V / sub, f"knowledge/{sub}")
 for n in ("Shard Schema", "Run Order", "Data Pipeline", "Limits and Access", "Raw Replay Parsing Prompt",
-          "Master Parser Prompt", "Bootstrap Package", "Unified Pipeline Brief"):
+          "Master Parser Prompt", "Bootstrap Package", "Unified Pipeline Brief", "First Real Run Checklist"):
     add(f"knowledge/Pipeline/{n}.md", (V / "Pipeline" / f"{n}.md").read_bytes())
 for n in ("00 START HERE", "02 Current State", "04 Open Questions"):
     p = next(V.glob(f"{n}*.md"), None)
@@ -73,6 +75,14 @@ for p in sorted((ROOT / "inbox/shard-4c1d14ba").glob("*")):
 if a.golden_export:
     for n in ("events.parquet", "manifest.json"):
         add(f"golden_sample/export/{n}", (Path(a.golden_export) / n).read_bytes())
+if a.golden_full:
+    import io
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as zz:
+        for p in sorted(Path(a.golden_export).glob("*")):
+            if p.is_file():
+                zz.write(p, f"export/{p.name}")
+    add("golden_sample/export_full.zip", buf.getvalue())
 add("golden_sample/expected.json", json.dumps({
     "match_id": "4c1d14ba-6e21-496f-9101-1b85fa513fd8", "build": "release-13.08", "mode": "Swiftplay", "rounds": 5,
     "kills": 34, "players": 10, "teams": [5, 5], "damage_dealt_equals_received": 6049.78,
@@ -105,16 +115,17 @@ the **meta-analysis agent** (15 native-resolution data groups, `analytics_tables
 2. `docs/EXTRACTION_REQUIREMENTS.md` is the meta agent's contract for `analytics_tables/` (verbatim).
 3. `knowledge/` holds what the project has learned: `Reference/Replay Data Guide.md` (traps in the data), agents, classes, maps, abilities,
    ADRs (`Decisions/`), shard schema, metrics. Names are confirmed or they stay as codenames.
-4. `golden_sample/` is the one replay whose correct answer is known. Run `python3 parser/golden_sample_test.py golden_sample/shard golden_sample/export`
+4. `parser/meta_tables.py` is reference code that already builds the 15 data groups from one export (read it before writing your own) and `parser/meta_tables_test.py` tests it; unzip `golden_sample/export_full.zip` and run `python3 parser/meta_tables_test.py <unzipped>/export golden_sample/shard`. Its gap list says what is still unbuilt. `knowledge/Pipeline/First Real Run Checklist.md` says what to report after the first real replay.
+5. `golden_sample/` is the one replay whose correct answer is known. Run `python3 parser/golden_sample_test.py golden_sample/shard golden_sample/export`
    before trusting any code change. A pass means EXPORT_PIPELINE_VALIDATED (export to shard logic only), not that a raw replay was parsed.
 
 ## Layout
 | Path | Contents |
 |---|---|
-| `parser/` | `colab_bootstrap.py` (installs a registered vrfkit), `batch_process.py` (folder of replays to shards), `valosaber.py`, `shard_checks.py`, `golden_sample_test.py`, `ingest.py`, `baselines.py`, `register_vrfkit.py`, `skill/` (cast and table builders, `codenames.json`), notebook |
+| `parser/` | `colab_bootstrap.py` (installs a registered vrfkit), `batch_process.py` (folder of replays to shards), `valosaber.py`, `shard_checks.py`, `golden_sample_test.py`, `ingest.py`, `baselines.py`, `register_vrfkit.py`, `meta_tables.py` + test, `skill/` (cast and table builders, `codenames.json`), notebook |
 | `data/` | name lookup (build 13.08), `agent_classes.json`, `vrfkit_supported_builds.json` (registry), pipeline guide |
 | `scripts/ schemas/ config/ ontology/ run_pipeline.py` | the meta agent's earlier files, unchanged. `run_pipeline.py` is the old exporter (fixed folders); use `parser/batch_process.py` instead. `scripts/spatial_layer.py` expects CSV tables this pipeline does not yet produce |
-| `golden_sample/` | shard, events and manifest of the sample export, expected values |
+| `golden_sample/` | shard, events and manifest of the sample export, the full export zipped, expected values |
 | `bin/` | empty on purpose (see `bin/README.txt`) |
 | `PACKAGE_MANIFEST.json` | SHA-256 of every file here |
 
@@ -128,8 +139,9 @@ result, not something to work around. Never fill, default or invent a value; nev
 
 ## Known limits (today)
 - Only release-13.08 Swiftplay is verified. Patch 13.09 (Hush) is unsupported by the pinned vrfkit; its codename and ID are unknown.
-- Economy was all zero in the sample (mode or decode gap, unknown). `characterUltimateUsed` over-reports about 50%.
-- Not yet built: matches/rounds winners table, spike_events, economy, ability lifecycle, utility_objects, player_effects, world_state, map_identity, native player_state, the completeness report, tests A to I from the requirements.
+- `RoundInfos.StartOfRound*` is zero in the sample (money elsewhere is real). `characterUltimateUsed` over-reports about 50%.
+- Built as reference only (13.08 sample): the 15 groups in `parser/meta_tables.py`. Not built: per-hit damage and regions, kill weapon and assists, spike site and planter, ability lifecycle beyond cast and actor open/close, effect intervals, health and alive state, purchases, capability report, tests A to I.
+- Economy is not all zero: see `knowledge/Reference/Replay Data Guide.md` item 11.
 """)
 
 # 8. manifest, write, verify

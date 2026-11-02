@@ -8,6 +8,14 @@ tags: [valosaber, changelog]
 
 Newest first. One line per change that someone starting fresh would care about. Link to the note that has the detail.
 
+## 2026-11-01 (later)
+- **Reference extractor for the 15 meta data groups:** `parser/meta_tables.py` + `meta_tables_test.py` (10 checks incl. a placeholder mutation test). Run automatically by `batch_process.py` into `<match>/analytics_tables/`, with `completeness_report.json` and gap codes. Checked on the one 13.08 sample only ([[Bootstrap Package]]).
+- **Correction:** economy is not all zero. `MoneyManagementComponent` holds real money (800 to 8,850); `RoundInfos.EndOfRound*` are real; only `RoundInfos.StartOfRound*` is zero ([[Replay Data Guide]] item 11, [[04 Open Questions]] question 1). Master prompt updated.
+- Other findings from the sample: round winners and results are in `GameState.RoundResults[n]` (WinningTeam Red, role, result); the 43,982 movement rows with no roster player belong to utility pawns (Cypher camera, Fade pet); `AffectedPlayer` values in effects are PlayerState actor guids and resolve to roster players.
+- Build gate re-tested with stub binaries: a replay whose build the binary does not know, or an unregistered binary, stops with `unsupported_build` and writes no tables.
+- Hush's kit sourced from the official 13.09 notes and a second outlet ([[Agents]]); codename and ID still unknown.
+- Proposed [[ADR-008 Parquet tables are the primary route]] (CSV route becomes an adapter) and wrote [[First Real Run Checklist]].
+
 ## 2026-11-01
 - **Bootstrap package v3** (`tools/build_bootstrap.py`): one zip for both the statistics analyst and the meta agent. It carries the agent task (master prompt with addendum), the meta agent's 15-group requirements (`docs/EXTRACTION_REQUIREMENTS.md`, also [[Extraction Requirements]]), the knowledge notes, our code, the registry, the meta agent's earlier files unchanged, and the golden sample with expected values. vrfkit is **not** inside; see [[Bootstrap Package]].
 - Master prompt section 6 now points to the 15 data groups and the completeness statuses ([[Master Parser Prompt]]).

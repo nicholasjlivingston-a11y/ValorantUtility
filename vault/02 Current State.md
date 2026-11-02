@@ -20,6 +20,7 @@ tags: [valosaber, status]
 - Peer-group baselines (overall, class, agent) built and self-tested; waiting for data. See [[Baselines]] and [[ADR-007 Three peer groups for comparison]].
 
 ## In progress
+- Reference code for the 15 meta groups exists and passes its tests on the 13.08 sample ([[Bootstrap Package]]). Unbuilt parts are listed as gaps in its completeness report. [[ADR-008 Parquet tables are the primary route]] awaits the user's approval; [[First Real Run Checklist]] is ready for the first 13.09 run.
 - Bootstrap package v3 built 2026-11-01 for both agents (see [[Bootstrap Package]]); waiting for the user to hand it to the coding agent together with a registered 13.09-capable vrfkit.
 - Master prompt for the coding agent written, with the meta agent's addendum ([[Master Parser Prompt]]). The 13.09 vrfkit the user says is active must be registered before the batch will run on 13.09 replays ([[04 Open Questions]] question 16).
 - First real batch run in Colab with the actual vrfkit ([[Run Order]]). Swiftplay only is verified; standard-mode output is untested.
@@ -33,7 +34,7 @@ tags: [valosaber, status]
 | More replays (30+ for stable player numbers, hundreds for a fitted model) | User |
 | A full competitive replay, to check economy and spike fields | User |
 | Allow `valorant-api.com` for official agent, map and ability tables | User (network settings) |
-| Decode `Slot`, `AssistType`, hit region codes; find real economy values | Coding agent |
+| Decode `Slot`, `AssistType`, hit region codes; extract purchases and per-round money snapshots | Coding agent |
 
 ## Next up (in order)
 1. Send the updated brief to the coding agent and require the acceptance checks on the Swiftplay sample before any delivery is accepted.
@@ -49,7 +50,7 @@ tags: [valosaber, status]
 ## Known gaps in what exists today
 - The shard is produced by `valosaber.py`, not by the main pipeline.
 - Only one match has been through it.
-- Economy values were all zero in this match.
+- Economy: money is real (see [[Replay Data Guide]] item 11); only `RoundInfos.StartOfRound*` is zero.
 - The win-probability model ignores the spike, clock, weapons and position.
 
 ## Rejected inputs

@@ -1,7 +1,7 @@
 ---
 type: runbook
 status: current
-updated: 2026-10-30
+updated: 2026-11-01
 tags: [valosaber, pipeline, runbook]
 ---
 # Run order (replay to page)
@@ -11,6 +11,7 @@ Regenerates everything from a parsed export. Verified end to end on the sample m
 ## Fast path: Colab batch (2026-10-31)
 `parser/valosaber_batch.ipynb` does steps 1 to 4 for every replay in `MyDrive/valosaber/replays/`: verifies vrfkit ([[Bootstrap Package]]), exports, builds the effects table, writes a checksummed shard per match to `MyDrive/valosaber/outbox/<match>/shard/`, zips the raw export beside it, and optionally pushes the shards to `inbox/`. Logic lives in `parser/batch_process.py`; each match gets a `status.json`, and `batch_report.csv` summarizes the run. Then say "process the inbox" ([[Queue]]).
 Tested with a stand-in for vrfkit (the sample export copied, hashes and shard identical to the manual run). **Not yet run with the real vrfkit in Colab.** Only Swiftplay is verified; standard-mode shards are produced with a warning and held back from the push.
+Since 2026-11-01 each match folder also gets `analytics_tables/` (the meta agent's 15 data groups, from `parser/meta_tables.py`), `completeness_report.json`, `schema.md` and `tables_manifest.json`, produced from the same export and run as the shard. After a real run, follow [[First Real Run Checklist]].
 `valosaber.py` now reads build, duration and mode from the export instead of hardcoding them (sample output unchanged).
 
 ## Setup (once per session)

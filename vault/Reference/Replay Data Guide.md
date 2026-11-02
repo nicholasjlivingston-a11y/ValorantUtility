@@ -26,7 +26,7 @@ Read this before touching any table. Every item here is a trap that produces con
 8. **Three player identifiers.** Subject UUID (`Subject`, casts), PlayerState net GUID (effect targets), pawn/controller GUID (`actors`). They do not interchange.
 9. **Actor spawns are not casts.** Spawns overcount by 3 to 4 times.
 10. **`characterUltimateUsed` over-reports by about 50%.** Use `UltimateActive` False to True transitions.
-11. **Economy is all zero** in the Swiftplay sample (`RoundInfos[n].StartOfRoundMoney` and loadout values). Do not build economy metrics until a competitive replay shows real values.
+11. **Economy is not all zero (corrected 2026-11-01).** On the Swiftplay sample, `MoneyManagementComponent` (one per PlayerState actor; fields `Money`, `TotalMoneyGranted`, `StartOfRoundMoney`) holds real values, 800 at the start up to 8,850. In `OwnerExclusivePlayerInfo.RoundInfos[n]` the `EndOfRound*` values are real (money up to 4,450, loadout up to 5,200) but the `StartOfRound*` values are all zero, which looks like a decode or replication gap and is flagged WARN. The earlier all-zero reading came from reading only the start-of-round fields. Money rows resolve to players through the manifest `players[].actor_net_guid` (PlayerState). Purchases (`PurchasedItemComponent`, `AresInventory`) are not extracted yet. See `parser/meta_tables.py`.
 12. **Undecoded:** cast `Slot`, `AssistType` (0, 1, 10, 14 seen), hit `Region`.
 13. **Anonymized names.** Competitive replays store anonymized display names. The per-player `Subject` UUID is the stable key.
 

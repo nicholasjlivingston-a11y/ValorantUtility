@@ -11,7 +11,7 @@ Add new questions at the top. When one is answered, move it to the "Answered" se
 ## Open
 | # | Question | Why it matters | What would answer it | Owner |
 |---|---|---|---|---|
-| 1 | Is economy really zero in this build or only in Swiftplay? Where do real values live? | No economy metrics until solved | A competitive replay; coding agent checks the source | Coding agent |
+| 1 | Economy: money is real in `MoneyManagementComponent` and in `RoundInfos.EndOfRound*`; `RoundInfos.StartOfRound*` is all zero. Is that zero a Swiftplay property or a gap? Are purchases decodable? | Economy metrics need start-of-round snapshots and buys | A competitive replay; extract `PurchasedItemComponent` | Coding agent |
 | 2 | What do the `Slot` numbers (3, 4, 5, 9) mean for ability casts? | Per-ability results | Coding agent decodes, or a replay with known casts | Coding agent |
 | 3 | What do `AssistType` values (0, 1, 10, 14) and hit `Region` codes mean? | Assists, headshots | Coding agent decodes | Coding agent |
 | 4 | Is map code `Pitt` Pearl? | Map names and factors | An official source or the agent's map table | User or reference table |
@@ -21,7 +21,7 @@ Add new questions at the top. When one is answered, move it to the "Answered" se
 | 8 | What is the unit of per-target effect values (seconds? fraction? damage?) | Weighting utility effects | Effect start and end times plus the coding agent's decoding | Coding agent |
 | 9 | Can the Drive connector create binary files? | Whether Claude can write shards back | A test write | Claude |
 | 13 | Does the agent list miss one agent? Outlets number Veto 29th and Hush 31st, but lists show 28 agents before Miks | A complete class table | An official agent list | Reference table |
-| 14 | Which route is the main one for utility events: the bootstrap CSV tables or our parquet shards? | Two definitions of the same tables | User and coding agent decide; see [[Bootstrap Package]] | User |
+| 14 | Which route is the main one for utility events: the bootstrap CSV tables or our parquet tables? | Two definitions of the same tables | Recommendation in [[ADR-008 Parquet tables are the primary route]]; waiting for the user to approve | User |
 | 15 | Does vrfkit decode 13.09 and later replays (Hush's patch)? Is combat-report decoding on 13.08 reliable? | Newer replays may not parse | Test a 13.09 replay; update vrfkit from its repository | User and coding agent |
 | 16 | Which vrfkit binary is the 13.09-capable one, and does it decode the Hush replays correctly? | The bootstrap binary stops at 13.08 | Run `parser/register_vrfkit.py` on it; process one 13.09 replay and read the checks | User and coding agent |
 | 10 | Who are the 10 players across matches? Is `Subject` UUID stable between matches? | Player baselines | Two matches with the same player | Needs more replays |
