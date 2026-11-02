@@ -130,6 +130,13 @@ def process(vrf: Path, a, work_root: Path):
                             "parser": {"vrfkit_sha256": st["vrfkit_sha256"], "repo_commit": st["repo_commit"]}})
                 json.dump(idx, open(shard / "index.json", "w"), indent=1)
                 st["rounds"] = idx.get("rounds"); st["shard_bytes"] = sum(f.stat().st_size for f in shard.iterdir())
+        # meta agent's 15 data groups: same export, same run; needs the shard for kills/damage/teams (DERIVED), else those stay UNRESOLVED
+        mt_cmd = [sys.executable, HERE / "meta_tables.py", exp, od, "--source-sha256", st["source_sha256"], "--run-id", st["run_id"], "--lookup", a.lookup]
+        if (od / "shard").exists():
+            mt_cmd += ["--shard", od / "shard"]
+        if step("analytics_tables", mt_cmd):
+            tm = json.load(open(od / "tables_manifest.json"))
+            st["analytics_rows"] = {k: v["rows"] for k, v in tm["tables"].items()}
         if not a.no_zip:
             zp = od / "export.zip"
             with zipfile.ZipFile(zp, "w", zipfile.ZIP_DEFLATED, compresslevel=1) as z:

@@ -34,6 +34,8 @@ Deadeye = Chamber, Killjoy = Killjoy, Nox = Vyse, Sprinter = Neon, Terra = Wayla
 ## Not in this replay
 Hush (Duelist) arrived in patch 13.09 on October 27, 2026, after this build. Her codename and characterId are unknown until a 13.09 or later replay is processed. Add them here then, with evidence.
 
+**Hush kit (checked 2026-11-01, two sources agree):** Passive Telekinesis (picks up weapons and, on attack, the Spike; works switches from farther away), C Flow, Q Flashbulb, E Displacement (signature), X Suspension (ultimate). Sources: [official patch notes 13.09](https://playvalorant.com/en-us/news/game-updates/valorant-patch-notes-1309) (dated 2026-10-27, names only, no role or ultimate marked) and [The Spike ability rundown](https://www.thespike.gg/valorant/news/valorant-new-agent-hush-all-abilities/9042) (role Duelist, slot letters). Costs, charges and ultimate points were not stated; do not use numbers until sourced. The internal codename and characterId remain unknown, and the ability class names in replays (Ability_<Codename>_...) cannot be matched to these display names until a 13.09 replay is processed.
+
 Tejo's agent ID is `b444168c-4e35-8076-db47-ef9bf368f384`. It does not match any player here.
 
 ## How to resolve a name properly

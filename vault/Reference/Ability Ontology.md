@@ -19,4 +19,4 @@ Source: `ontology/ability_ontology.json` and `decision_ledger.json` in the [[Boo
 ## Open
 - The two ability records need to be linked to class names seen in replays (the ability class paths in [[Abilities]]).
 - Deadlock's Sonic Sensor question has no answer yet.
-- Hush's abilities (Flashbulb, Displacement, Flow, Suspension) are not in the ontology.
+- Hush's abilities (Telekinesis passive, Flow C, Flashbulb Q, Displacement E, Suspension X) are not in the ontology; names are sourced in [[Agents]], replay class names are unknown.
