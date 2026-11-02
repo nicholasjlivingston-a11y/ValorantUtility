@@ -26,8 +26,15 @@ res["rounds == 5, all with WinningTeam"] = len(rd("rounds")) == 5 and rd("rounds
 res["deaths == 34, none unmatched"] = len(rd("deaths")) == 34 and rd("deaths").matched_kill_index.notna().all()
 res["money not all zero"] = (rd("economy").query("field_name == 'Money'").value_i64.dropna() > 0).any()
 res["players == 10 with characterId"] = len(rd("players")) == 10 and rd("players").characterId.notna().all()
+res["per-hit damage equals combat-report total and killing hits equal kills"] = (
+    ((find.group == "damage_events") & find.check.str.contains("equal")).sum() == 2 and not ((find.group == "damage_events") & (find.status == "FAIL")).any())
+kd = rd("kill_details")
+res["kill_details: 34 rows, one killing hit each, weapon class present"] = len(kd) == 34 and (kd.killing_hits_found == 1).all() and kd.equippable_class.notna().all()
+res["spike: 5 plants, 5 locations, 5 inferred planters (INFERRED label)"] = (lambda s: (s.event_group == "plant_location").sum() == 5 and ((s.event_group == "planter_inferred") & (s.evidence == "INFERRED")).sum() == 5)(rd("spike_events"))
+res["purchases have purchaser subjects"] = rd("purchases").purchaser_subject.notna().any()
+res["money snapshots: 10 players x 5 rounds, values vary"] = len(rd("economy_snapshots")) == 50 and rd("economy_snapshots").money_before_round_start.nunique() > 1
 res["no FAIL findings"] = not (find.status == "FAIL").any()
-const = [n for n in ("kills", "deaths", "economy", "player_state", "rounds") if len(rd(n)) > 1 and rd(n).drop(columns=["match_id", "run_id", "evidence"]).drop_duplicates().shape[0] <= 1]
+const = [n for n in ("kills", "deaths", "economy", "player_state", "rounds", "damage_events", "kill_details") if len(rd(n)) > 1 and rd(n).drop(columns=["match_id", "run_id", "evidence"]).drop_duplicates().shape[0] <= 1]
 res["no constant table"] = not const
 ps = rd("player_state")
 res["player_state: every roster player has rows, positions vary"] = ps.subject.nunique() == len(rd("players")) and ps.pos_x.nunique() > 100

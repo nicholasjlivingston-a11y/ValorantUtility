@@ -36,3 +36,11 @@ Read this before touching any table. Every item here is a trap that produces con
 - Total damage dealt equals total damage received (sample: 6049.78).
 - Every combat-report component resolves to exactly one player (sample: one zero-cost solution, runner-up cost 3,100).
 - All 10 players have positions (sample: 100%).
+
+## Findings from the reference extractor (2026-11-02, 13.08 Swiftplay sample only)
+- **Per-hit damage exists.** `DamageableComponent` RPC `MulticastNotifyDamage_Point.*` is one record per damage instance (138 in the sample): `DamageDealt`, `DamageTaken`, `bDamageKilledTarget`, `bAliveAfterDamage`, `DamagerPlayerState`, `KillCreditPlayerState`, `EquippableUsed` (weapon actor, resolves to a class name through actors), `DamageType` (numeric), `DamagedBone`, `bIsWallPenetration`, `DamageOrigin`, impact location, `LifeChangeEvents[n].*`. The victim is the channel actor (a pawn or a utility object). Fields of one call are consecutive in a packet; a repeated field name starts the next call. Summed `DamageDealt` on player victims equals the combat-report total (6049.78) and the killing hits equal the 34 kills, so the combat report is no longer the only source.
+- **Kill detail** (weapon class, bone, wall penetration, kill credit) comes from the killing hit; assists are only candidates (other players who damaged the victim that round). `AssistType` and `DamageType` have no label table in the source.
+- **Spike.** `BombDestination.MulticastActivateBombSiteEffects.BombLocation` gives the plant location (no A/B name). The planter is INFERRED from the last `BombEquippable.Owner` before the plant. `TimedBomb` carries `DefuseProgress` and `TimeRemainingToExplode`. The defuser is not resolved.
+- **Purchases.** `PurchasedItemComponent`: `Purchaseable` (numeric id), `PurchasingPlayerState`, `bIsCurrentSessionPurchase`, `PurchasableTransactionSource`. No names or prices in the source read.
+- **Health.** `AresAttributeSet` holds only constant initial values (no changes over time); do not read it as health. Health changes appear per hit in `LifeChangeEvents` and in `MulticastNotifySetLife` / `MulticastNotifyHeal` RPCs (not extracted yet).
+- Weapon class names seen: LugerPistol_C, BasePistol_C, AutomaticPistol_C, RevolverPistol_C, SubMachineGun_MP5_C, AssaultRifle_AK_C, AssaultRifle_ACR_C, LightMachineGun_C. Display names are unconfirmed.

@@ -8,6 +8,10 @@ tags: [valosaber, changelog]
 
 Newest first. One line per change that someone starting fresh would care about. Link to the note that has the detail.
 
+## 2026-11-02
+- **Reference extractor extended** (`parser/meta_tables.py`): hit-grain `damage_events` from the per-hit damage RPC (reconciles exactly with combat reports), `kill_details` (weapon class, bone, wall penetration, kill credit, assist candidates), `purchases`, `economy_snapshots` (DERIVED), spike plant location, carrier observations and an INFERRED planter, `bomb_timer_observations`. The old aggregate table is now `damage_by_pair_round`. 15 tests pass ([[Replay Data Guide]]).
+- **`ingest.py` merges analytics tables** (schema meta-1): verifies hashes, rows and match_id, rejects any FAIL finding or a source_sha256 already ingested under another match, splits large tables by rows to stay under the cap, finds shards and analytics under `outbox/<match>/`. Tested: fresh, rerun, corrupted file, FAIL finding, small cap.
+
 ## 2026-11-01 (later)
 - **Reference extractor for the 15 meta data groups:** `parser/meta_tables.py` + `meta_tables_test.py` (10 checks incl. a placeholder mutation test). Run automatically by `batch_process.py` into `<match>/analytics_tables/`, with `completeness_report.json` and gap codes. Checked on the one 13.08 sample only ([[Bootstrap Package]]).
 - **Correction:** economy is not all zero. `MoneyManagementComponent` holds real money (800 to 8,850); `RoundInfos.EndOfRound*` are real; only `RoundInfos.StartOfRound*` is zero ([[Replay Data Guide]] item 11, [[04 Open Questions]] question 1). Master prompt updated.

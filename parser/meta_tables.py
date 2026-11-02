@@ -49,7 +49,10 @@ def stamp(df, evidence):
     df = df.copy()
     df.insert(0, "match_id", match_id)
     df.insert(1, "run_id", run_id)
-    df["evidence"] = evidence
+    if "evidence" not in df.columns:
+        df["evidence"] = evidence
+    else:
+        df["evidence"] = df["evidence"].fillna(evidence)
     return df
 
 
@@ -133,8 +136,7 @@ if a.shard and (Path(a.shard) / "kills.parquet").is_file():
     k = kills.rename(columns={"killer": "killer_subject", "victim": "victim_subject", "t": "time_ms", "rnd": "round_index"})
     keep = [c for c in ("kill_index", "round_index", "time_ms", "killer_subject", "victim_subject") if c in k.columns]
     put("kills", stamp(k[keep], "DERIVED"), "one row per kill resolved from combat-report reciprocity (shard projection)")
-    gap("kills", "weapon/ability, damage type, region, headshot, wallbang, assists, positions at kill", "UNRESOLVED",
-        "Interactions[].DealtInteractions/Regions exist in fields but are not extracted by this reference code yet")
+    gap("kills", "assist type enum, positions at kill", "UNRESOLVED", "weapon class, bone, wall penetration and assist candidates are in kill_details; AssistType and DamageType are numeric ids with no label table")
 else:
     gap("kills", "kill rows", "UNRESOLVED", "needs --shard")
 d_rows = []
@@ -158,14 +160,12 @@ dam = None
 if a.shard and (Path(a.shard) / "damage.parquet").is_file():
     dam = pd.read_parquet(Path(a.shard) / "damage.parquet").rename(columns={"rnd": "round_index", "owner": "owner_subject", "other": "other_subject",
         "dealt": "DamageDealt", "recv": "DamageRecieved", "hits_d": "HitsDealt", "hits_r": "HitsRecieved", "did_kill": "bDidKill"})
-    put("damage_events", stamp(dam.drop(columns=["match_id"], errors="ignore"), "DERIVED"),
-        "AGGREGATE: one row per owner, other player and round (source: Rounds[r].Reports[k].Interactions[i]); individual hits are not here")
-    gap("damage_events", "per-hit and per-region records (DealtInteractions, ReceivedInteractions, Regions, DamageType)", "UNRESOLVED",
-        "present in the source fields, not extracted by this reference code yet; damage_events is therefore aggregate-grain only")
-    finding("damage_events", "dealt equals received", "PASS" if abs(dam.DamageDealt.sum() - dam.DamageRecieved.sum()) < 0.02 else "FAIL",
+    put("damage_by_pair_round", stamp(dam.drop(columns=["match_id"], errors="ignore"), "DERIVED"),
+        "AGGREGATE: one row per owner, other player and round (source: Rounds[r].Reports[k].Interactions[i], shard projection); the hit-grain table is damage_events")
+    finding("damage_by_pair_round", "dealt equals received", "PASS" if abs(dam.DamageDealt.sum() - dam.DamageRecieved.sum()) < 0.02 else "FAIL",
             f"dealt {dam.DamageDealt.sum():.2f}, received {dam.DamageRecieved.sum():.2f}")
 else:
-    gap("damage_events", "damage rows", "UNRESOLVED", "needs --shard")
+    gap("damage_by_pair_round", "pair-round damage rows", "UNRESOLVED", "needs --shard")
 
 # ---------------------------------------------------------------- fields (big)
 F = pd.read_parquet(E / "fields.parquet", columns=["time_ms", "packet_id", "actor_net_guid", "group_path", "field_name",
@@ -219,8 +219,8 @@ if len(rinf):
         allzero = bool((g.value_i64.fillna(0) == 0).all())
         finding("economy", f"RoundInfos.{leaf}", "WARN" if allzero else "PASS",
                 f"{len(g)} observations, min {g.value_i64.min():.0f}, max {g.value_i64.max():.0f}, all zero = {allzero}", "warn" if allzero else "info")
-gap("economy", "purchases (weapon, armor, ability buys) per round", "UNRESOLVED", "PurchasedItemComponent and AresInventory fields exist; not extracted by this reference code yet")
-gap("economy", "per-round start and end money snapshots", "UNRESOLVED", "StartOfRoundMoney is observed; end-of-round snapshots must be derived from Money observations, which this code does not do")
+gap("economy", "purchase prices and item names", "UNRESOLVED", "purchases table holds the Purchaseable numeric id and purchaser; no id-to-item or price table in the source read")
+gap("economy", "authoritative per-round snapshots", "UNRESOLVED", "economy_snapshots are DERIVED from the last Money observation before round start and result; RoundInfos.StartOfRound* is zero")
 
 # spike events
 sp = ev[ev.group.isin(["spikePlanted", "spikeDefused"])].sort_values("time1")
@@ -229,7 +229,8 @@ bs = F[F.group_path.str.contains("_GameState_C", regex=False) & (F.field_name ==
 rows += [dict(source="GameState.BombState", event_group="BombState", time_ms=int(r.time_ms), BombState=r.value_i64) for r in bs.itertuples()]
 put("spike_events", stamp(pd.DataFrame(rows).sort_values("time_ms"), "OBSERVED"), "one row per spike event or BombState change; BombState numeric meaning is unlabelled")
 gap("spike_events", "BombState enum labels", "UNRESOLVED", "values 0..6 observed; labels not in the export")
-gap("spike_events", "plant site, planter, defuser, pickup, drop, detonation", "UNRESOLVED", "events carry only a time; Bomb actors (BombEquippable, Bomb_Defuser) are in actors but not linked here")
+gap("spike_events", "site label (A/B/C) and map-relative site", "NOT_PRESENT_IN_SOURCE", "only a world location of the plant is carried, no site name")
+gap("spike_events", "planter and defuser identity", "UNRESOLVED", "carrier at plant is INFERRED from the bomb actor Owner; defuser from UsableComponent/TimedBomb observations is not resolved to a player")
 
 # world_state: GameState fields except high-frequency timers, plus team state
 timers = {"GamePhaseElapsedTime", "StateRemainingTime", "DisplayRemainingTime", "ReplicatedWorldTimeSecondsDouble"}
@@ -243,7 +244,7 @@ put("world_state", stamp(pd.concat([gs, ts], ignore_index=True).sort_values(["ti
 gap("world_state", "GamePhaseElapsedTime, StateRemainingTime, DisplayRemainingTime, ReplicatedWorldTimeSecondsDouble, ServerFrameTimeMs", "NOT_TESTABLE",
     f"{int(F.field_name.isin(timers).sum())} high-frequency timer observations remain in fields.parquet and are not copied here")
 gap("world_state", "MulticastSetPhase.NewPhase labels", "UNRESOLVED", "numeric phases 2..6; roles INFERRED (3 pre-round/buy, 4 after buy, 5 round end), not confirmed")
-gap("world_state", "health, armor, alive flags", "UNRESOLVED", "AresAttributeSet BaseValue/CurrentValue are observed but the attribute identity is not decoded; not written as health")
+gap("world_state", "health, armor, alive flags as a time series", "UNRESOLVED", "AresAttributeSet holds only constant initial values (no change over time) and is not written as health; per-hit LifeChangeEvents are in damage_events, SetLife/Heal RPCs are not extracted")
 
 # player_state: native movement ticks
 mv = pd.read_parquet(E / "movement.parquet")
@@ -307,10 +308,130 @@ else:
     put("player_effects", stamp(pd.DataFrame(), "OBSERVED"), "empty")
     gap("player_effects", "all", "NOT_PRESENT_IN_SOURCE", "no AbilityCastsThisRound records decoded")
 
+
+# ---------------------------------------------------------------- per-hit damage (DamageableComponent RPC MulticastNotifyDamage_Point)
+P = "MulticastNotifyDamage_Point."
+dm = F[F.field_name.str.startswith(P)].copy()
+dm["val"] = dm.value_i64.where(dm.value_i64.notna(), dm.value_f64.where(dm.value_f64.notna(), dm.value_bool.where(dm.value_bool.notna(), dm.value_str)))
+recs, cur, key = [], None, None
+for r in dm.itertuples():  # one RPC call = consecutive fields in one packet on one actor; a repeated name starts the next call
+    k = (r.packet_id, r.actor_net_guid)
+    nm = r.field_name[len(P):]
+    if k != key or nm in cur:
+        cur = dict(time_ms=int(r.time_ms), packet_id=int(r.packet_id), victim_actor_net_guid=int(r.actor_net_guid))
+        recs.append(cur); key = k
+    cur[nm] = r.val
+hits = pd.DataFrame(recs)
+short = lambda s: s.str.extract(r"/([^/]+)$")[0].str.replace(r"^.*\.", "", regex=True)
+if len(hits):
+    for c in hits.columns:
+        if hits[c].dtype == object:
+            hits[c] = hits[c].where(hits[c].notna(), None)
+    cl = lambda col: short(hits[col].map(lambda v: cls_of.get(int(v)) if pd.notna(v) else None).astype("string")) if col in hits else None
+    hits["victim_class"] = short(hits.victim_actor_net_guid.map(cls_of).astype("string"))
+    hits["victim_subject"] = hits.victim_actor_net_guid.map(subj_by_char)
+    hits["damager_subject"] = hits.DamagerPlayerState.map(lambda v: subj_by_ps.get(int(v)) if pd.notna(v) else None)
+    hits["kill_credit_subject"] = hits.KillCreditPlayerState.map(lambda v: subj_by_ps.get(int(v)) if pd.notna(v) else None)
+    hits["equippable_class"] = cl("EquippableUsed"); hits["damage_causer_class"] = cl("DamageCauser")
+    rs_t = rounds.round_started_ms.to_numpy()
+    hits["round_index"] = [int(rounds.round_index.iloc[max(np.searchsorted(rs_t, t, side="right") - 1, 0)]) for t in hits.time_ms]
+    put("damage_events", stamp(hits.sort_values(["time_ms", "packet_id"]), "OBSERVED"),
+        "one row per MulticastNotifyDamage_Point RPC call (one damage instance); source names kept; victim may be a player or a utility object")
+    pv = hits[hits.victim_subject.notna()]
+    gap("damage_events", "DamageType, DamagedBone region codes, AssistType as labelled names", "UNRESOLVED", "DamageType is a numeric id; DamagedBone is a bone name string; no id-to-name table in the source")
+    gap("damage_events", "per-hit weapon display names", "UNRESOLVED", "equippable_class is the replay's class name (e.g. LugerPistol_C); display names are unconfirmed")
+    if dam is not None:
+        diff = float(pv.DamageDealt.astype(float).sum() - dam.DamageDealt.sum())
+        finding("damage_events", "per-hit DamageDealt on roster victims equals combat-report total", "PASS" if abs(diff) < 0.05 else "FAIL",
+                f"hits {pv.DamageDealt.astype(float).sum():.2f}, combat reports {dam.DamageDealt.sum():.2f}, difference {diff:.3f}", "error" if abs(diff) >= 0.05 else "info")
+    if kills is not None:
+        nk = int(pv.bDamageKilledTarget.fillna(False).astype(bool).sum())
+        finding("damage_events", "killing hits on roster victims equal kill rows", "PASS" if nk == len(kills) else "FAIL", f"{nk} killing hits, {len(kills)} kills", "error" if nk != len(kills) else "info")
+    finding("damage_events", "victims that are not roster players", "INFO", f"{int(hits.victim_subject.isna().sum())} of {len(hits)} hits hit non-roster targets (utility objects)")
+    # kill details: the killing hit for each kill, DERIVED by victim, time and killer credit
+    if kills is not None:
+        kh = pv[pv.bDamageKilledTarget.fillna(False).astype(bool)].copy()
+        kd = []
+        for kr in kills.itertuples():
+            c = kh[(kh.victim_subject == kr.victim) & ((kh.time_ms - kr.t).abs() <= 50)]
+            row = dict(kill_index=int(kr.kill_index), time_ms=int(kr.t), round_index=int(kr.rnd), killer_subject=kr.killer, victim_subject=kr.victim, killing_hits_found=len(c))
+            if len(c) == 1:
+                h = c.iloc[0]
+                row.update(hit_time_ms=int(h.time_ms), equippable_class=h.equippable_class, DamageType=h.DamageType, DamagedBone=h.DamagedBone,
+                           bIsWallPenetration=h.bIsWallPenetration, DamageDealt=h.DamageDealt, kill_credit_subject=h.kill_credit_subject,
+                           credit_matches_killer=bool(h.kill_credit_subject == kr.killer), DamageOrigin=h.DamageOrigin)
+            before = hits[(hits.victim_subject == kr.victim) & (hits.round_index == kr.rnd) & (hits.time_ms <= kr.t + 50) & (hits.damager_subject.notna())]
+            ds = sorted(set(before.damager_subject) - {kr.killer})
+            row["other_damagers_before_death"] = json.dumps(ds)
+            kd.append(row)
+        kd = pd.DataFrame(kd)
+        put("kill_details", stamp(kd, "DERIVED"), "one row per kill: the killing hit (joined by victim and time within 50 ms) and the other players who damaged the victim that round (assist CANDIDATES, not the game's assist flag)")
+        bad = int((kd.killing_hits_found != 1).sum())
+        finding("kill_details", "each kill joins exactly one killing hit", "PASS" if bad == 0 else "FAIL", f"{bad} of {len(kd)} kills without exactly one killing hit", "error" if bad else "info")
+        if "credit_matches_killer" in kd:
+            nm_ = int((~kd.credit_matches_killer.fillna(False)).sum())
+            finding("kill_details", "kill credit equals shard killer", "PASS" if nm_ == 0 else "FAIL", f"{nm_} kills where KillCreditPlayerState differs from the shard killer", "error" if nm_ else "info")
+else:
+    gap("damage_events", "all", "NOT_EXPOSED_BY_PARSER", "no MulticastNotifyDamage_Point records in the export")
+
+# ---------------------------------------------------------------- purchases
+pc = F[F.group_path.str.contains("PurchasedItemComponent", regex=False)][["time_ms", "packet_id", "actor_net_guid", "field_name"] + vcols].copy()
+if len(pc):
+    pc["val"] = pc.value_i64.where(pc.value_i64.notna(), pc.value_bool.where(pc.value_bool.notna(), pc.value_str))
+    pv_ = pc.pivot_table(index=["time_ms", "packet_id", "actor_net_guid"], columns="field_name", values="val", aggfunc="first").reset_index()
+    pv_.columns.name = None
+    if "PurchasingPlayerState" in pv_:
+        pv_["purchaser_subject"] = pv_.PurchasingPlayerState.map(lambda v: subj_by_ps.get(int(v)) if pd.notna(v) else None)
+    put("purchases", stamp(pv_, "OBSERVED"), "one row per PurchasedItemComponent observation time and component actor; delta stream, fields not sent are null (not forward-filled)")
+    gap("purchases", "item names, prices, round attribution", "UNRESOLVED", "Purchaseable is a numeric id; no table, price or round field in the source read; round_index can be derived from time_ms")
+
+# ---------------------------------------------------------------- money snapshots (DERIVED from Money observations)
+mn = mm[mm.field_name == "Money"].dropna(subset=["value_i64"]).sort_values("time_ms")
+srows = []
+for rr_ in rounds.itertuples():
+    for sub in sorted(set(subj_by_ps.values())):
+        ob = mn[mn.actor_net_guid.map(subj_by_ps) == sub]
+        def last_before(t):
+            x = ob[ob.time_ms <= t]
+            return (None, None) if x.empty else (int(x.iloc[-1].value_i64), int(x.iloc[-1].time_ms))
+        s0 = last_before(rr_.round_started_ms)
+        s1 = last_before(rr_.RoundResults_observed_ms) if pd.notna(rr_.RoundResults_observed_ms) else (None, None)
+        srows.append(dict(round_index=int(rr_.round_index), subject=sub, money_before_round_start=s0[0], money_before_round_start_obs_ms=s0[1],
+                          money_before_result=s1[0], money_before_result_obs_ms=s1[1]))
+put("economy_snapshots", stamp(pd.DataFrame(srows), "DERIVED"), "one row per player and round: last Money observation at or before round start and before the result is recorded")
+
+# ---------------------------------------------------------------- spike detail rows (appended to spike_events)
+sx = []
+bl = F[F.group_path.str.contains("BombDestination", regex=False) & F.field_name.str.contains("BombLocation")]
+for r in bl.itertuples():
+    sx.append(dict(source="BombDestination", event_group="plant_location", time_ms=int(r.time_ms), field_name=r.field_name, value_str=r.value_str, evidence="OBSERVED"))
+be = F[F.group_path.str.contains("BombEquippable", regex=False) & F.field_name.isin(["Owner", "Instigator", "MulticastPlayBombPickedUpAudio.NewCharacter"])]
+for r in be.itertuples():
+    v = r.value_i64
+    sx.append(dict(source="BombEquippable", event_group="carrier_observation", time_ms=int(r.time_ms), field_name=r.field_name, value_i64=v,
+                   subject=subj_by_char.get(int(v)) if pd.notna(v) else None, evidence="OBSERVED"))
+tb = F[F.group_path.str.contains("TimedBomb", regex=False) & F.field_name.isin(["DefuseProgress", "TimeRemainingToExplode"])]
+put("bomb_timer_observations", stamp(tb[["time_ms", "packet_id", "actor_net_guid", "field_name", "value_f64"]], "OBSERVED"),
+    "one row per TimedBomb DefuseProgress or TimeRemainingToExplode observation (high rate, kept separate from spike_events)")
+# planter INFERRED: last carrier observed on a BombEquippable before it closes at the plant event
+plants = ev[ev.group == "spikePlanted"].time1.astype("int64").tolist()
+beo = [x for x in sx if x["event_group"] == "carrier_observation" and x["field_name"] == "Owner" and x.get("subject")]
+for pt in plants:
+    c = [x for x in beo if x["time_ms"] <= pt + 30]
+    if c:
+        last = max(c, key=lambda x: x["time_ms"])
+        sx.append(dict(source="derived", event_group="planter_inferred", time_ms=pt, subject=last["subject"], evidence="INFERRED",
+                       field_name="last BombEquippable.Owner at or before spikePlanted"))
+if sx:
+    old = tables["spike_events"].drop(columns=["match_id", "run_id"], errors="ignore")
+    put("spike_events", stamp(pd.concat([old, pd.DataFrame(sx)], ignore_index=True).sort_values("time_ms", kind="stable"), "OBSERVED"),
+        "one row per spike event, BombState change, plant location, bomb carrier observation; planter_inferred rows are INFERRED")
+
 # ---------------------------------------------------------------- validation + outputs
 put("validation_findings", stamp(pd.DataFrame(findings), "DERIVED"), "one row per check or finding in this extraction run")
 names = ["matches", "players", "rounds", "player_state", "kills", "deaths", "damage_events", "economy", "spike_events", "ability_events",
-         "utility_objects", "player_effects", "world_state", "map_identity", "validation_findings", "utility_object_movement"]
+         "utility_objects", "player_effects", "world_state", "map_identity", "validation_findings", "utility_object_movement",
+         "damage_by_pair_round", "kill_details", "purchases", "economy_snapshots", "bomb_timer_observations"]
 out_rows = {}
 for n in names:
     if n not in tables:
