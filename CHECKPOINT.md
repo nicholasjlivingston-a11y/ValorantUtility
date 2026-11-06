@@ -13,7 +13,7 @@ Task: make bootstrap run on 13.09 vrfkit + add ChatGPT agent's data requests (id
 
 - Bootstrap rebuilt: bootstrap/valosaber_bootstrap_v3.2.zip (verified from clean unzip: normalize_test 22/22, golden test pass, run_pipeline --from-exports ok).
 
-## TODO
+## TODO (note: Colab run of 2026-11-06 processed 7/7 as normalized_only; see docs; run_pipeline --lookup bug fixed)
 1. First real 13.09 Standard run: run_pipeline --from-exports on the 7 exports, read cohort_report.csv + warnings.
 2. Hush codename/characterId, ADR-008 approval, open questions 1,4,5,6,10,13,14,15,16.
 ## Facts found in the Colab outbox (7 Standard 13.09 matches)

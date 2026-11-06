@@ -83,6 +83,7 @@ def main():
     ap.add_argument("--from-exports", help="folder with existing vrfkit exports (folders and/or export.zip)")
     ap.add_argument("--replays", help="folder of raw .vrf replays (needs --vrfkit)")
     ap.add_argument("--vrfkit", default=str(HERE.parent / "bin" / "vrfkit"))
+    ap.add_argument("--lookup", default=str(HERE.parent / "data" / "name_lookup_build13_08.json"))
     ap.add_argument("--out", required=True)
     ap.add_argument("--config", default=str(HERE / "pipeline_config.json"))
     ap.add_argument("--only", nargs="*")
@@ -90,7 +91,7 @@ def main():
     a = ap.parse_args()
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     if a.replays:
-        cmd = [sys.executable, str(HERE / "batch_process.py"), "--replays", a.replays, "--outbox", str(out), "--vrfkit", a.vrfkit, "--config", a.config]
+        cmd = [sys.executable, str(HERE / "batch_process.py"), "--replays", a.replays, "--outbox", str(out), "--vrfkit", a.vrfkit, "--lookup", a.lookup, "--config", a.config]
         if a.only:
             cmd += ["--only", *a.only]
         if a.force:
