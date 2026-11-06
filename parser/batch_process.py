@@ -176,17 +176,19 @@ def process(vrf: Path, a, work_root: Path):
         if step("analytics_tables", mt_cmd):
             tm = json.load(open(od / "tables_manifest.json"))
             st["analytics_rows"] = {k: v["rows"] for k, v in tm["tables"].items()}
-        nm_cmd = [sys.executable, HERE / "normalize.py", exp, od, "--config", a.config, "--source-sha256", st["source_sha256"], "--run-id", st["run_id"], "--lookup", a.lookup]
+        nm_cmd = [sys.executable, HERE / "normalize.py", exp, od / "normalized", "--config", a.config, "--source-sha256", st["source_sha256"], "--run-id", st["run_id"],
+                  "--map-registry", HERE.parent / "config" / "map_registry.json"]
         if (od / "shard").exists():
             nm_cmd += ["--shard", od / "shard"]
         if step("normalize", nm_cmd):
             try:
-                nj = json.load(open(od / "normalized" / "normalized_match.json"))
-                st["normalized"] = {k: nj.get(k) for k in ("rounds", "players", "team_basis", "movement_rows", "deaths", "unresolved_identities", "unresolved_utility", "sections_failed", "resolution_status")}
-                st["rounds"] = st.get("rounds") or nj.get("rounds")
-                if json.loads(nj.get("sections_failed") or "[]"):
+                nh = json.load(open(od / "normalized" / "match_header.json"))
+                nd = json.load(open(od / "normalized" / "parser_diagnostics.json"))
+                st["normalized"] = dict(nh, failed_steps=nd.get("failed_steps"), checks_warn=[c for c in nd["checks"] if c["level"] == "warn"][:10])
+                st["rounds"] = st.get("rounds") or nh.get("n_rounds")
+                if nd.get("failed_steps"):
                     st["steps"]["normalize"]["note"] = "some sections failed; see normalized/parser_diagnostics.json"
-                core_skip = {"movement", "player_positions", "replicated_fields", "utility_object_observations", "event_provenance_index"}
+                core_skip = {"movement", "player_positions", "replicated_fields", "utility_object_observations", "event_provenance_index", "netguid_mappings", "actor_lifecycle", "position_anomalies"}
                 with zipfile.ZipFile(od / "normalized_core.zip", "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
                     for f_ in sorted((od / "normalized").iterdir()):
                         if f_.stem not in core_skip:

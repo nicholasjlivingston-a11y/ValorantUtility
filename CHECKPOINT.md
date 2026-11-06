@@ -9,9 +9,9 @@ Task: make bootstrap run on 13.09 vrfkit + add ChatGPT agent's data requests (id
 - valosaber.py owner resolution: direct controller chain first (already in repo).
 - batch_process.py: self-register binary from its strings, repo_commit fallback, calls normalize.py.
 
+- batch_process.py aligned with normalize.py (out = <id>/normalized). parser/run_pipeline.py written and tested (--from-exports on golden export.zip -> 38 tables, cohort_handoff.json).
+
 ## TODO (in order)
-1. batch_process.py: align normalize call/summary with normalize.py CLI (out dir = <outbox>/<id>/normalized, summary from match_header.json).
-2. parser/run_pipeline.py: entry point; --from-exports (migration, no vrfkit) and raw .vrf mode.
 3. parser/normalize_test.py + mutation test.
 4. docs/DATA_CONTRACT.md, docs/HANDOFF.md; tools/build_bootstrap.py include new files + COMMIT; rebuild zip.
 5. Push, update project docs, vault, memory.

@@ -10,13 +10,17 @@
     "agent_classes": "data/agent_classes.json",
     "codenames": "parser/skill/codenames.json",
     "build_registry": "data/vrfkit_supported_builds.json",
-    "map_registry": "config/map_registry.json"
+    "map_registry": "config/map_registry.json",
+    "exports_dir": "exports"
   },
   "parser": {
     "vrfkit_expected_version": "0.3.x",
     "vrfkit_pinned_sha256_file": "parser/vrfkit.sha256",
     "self_register_binary": true,
-    "self_register_note": "A binary missing from the registry is registered from its own strings (hash + every release-NN.NN it contains) and the run records that it was self-registered. A replay build the binary does not contain is still refused."
+    "self_register_note": "A binary missing from the registry is registered from its own strings (hash + every release-NN.NN it contains) and the run records that it was self-registered. A replay build the binary does not contain is still refused.",
+    "logic_validated_on": [
+      "release-13.08"
+    ]
   },
   "normalize": {
     "death_to_hit_tolerance_ms": 50,
