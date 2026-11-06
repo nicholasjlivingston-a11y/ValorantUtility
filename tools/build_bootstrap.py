@@ -18,7 +18,7 @@ ap.add_argument("--source-zip")
 ap.add_argument("--golden-export")
 ap.add_argument("--golden-full", action="store_true")
 a = ap.parse_args()
-VERSION, BUILT = "3.1.0", "2026-11-01"
+VERSION, BUILT = "3.2.0", "2026-11-06"
 sha = lambda b: hashlib.sha256(b).hexdigest()
 files = {}  # path in zip -> bytes
 
@@ -38,6 +38,8 @@ def add_tree(src, dst, pat="*", skip=("__pycache__",)):
 add_tree(ROOT / "parser", "parser", skip=("__pycache__",))
 files = {k: v for k, v in files.items() if not k.endswith(".zip")}  # never nest old packages
 add_tree(ROOT / "tools", "tools")
+if (ROOT / "docs").is_dir():
+    add_tree(ROOT / "docs", "docs")
 for f in ("agent_classes.json", "name_lookup_build13_08.json", "vrfkit_supported_builds.json", "data_pipeline.md"):
     add(f"data/{f}", (ROOT / "data" / f).read_bytes())
 
@@ -105,6 +107,7 @@ else:
 
 # 7. README
 commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
+add("COMMIT", commit + "\n")
 add("README.md", f"""# Valosaber pipeline bootstrap v{VERSION}
 
 Built {BUILT} from repo commit {commit}. Serves two consumers from one raw `.vrf` replay:
@@ -130,6 +133,13 @@ the **meta-analysis agent** (15 native-resolution data groups, `analytics_tables
 | `PACKAGE_MANIFEST.json` | SHA-256 of every file here |
 
 ## Run
+Normalized data (39 tables, schema norm-1; contract in `docs/DATA_CONTRACT.md`, summary in `docs/HANDOFF.md`):
+```
+python3 parser/run_pipeline.py --from-exports EXPORTS --out OUT      # existing exports, no vrfkit
+python3 parser/run_pipeline.py --replays REPLAYS --vrfkit bin/vrfkit --out OUTBOX   # raw replays
+python3 parser/normalize_test.py golden_export_dir                   # after unzipping golden_sample/export_full.zip
+```
+Shard + analytics route:
 ```
 python3 parser/colab_bootstrap.py          # stops with REFUSING if no registered vrfkit is found
 python3 parser/batch_process.py --replays REPLAYS --outbox OUTBOX --vrfkit bin/vrfkit --lookup data/name_lookup_build13_08.json --only ONE_REPLAY.vrf
@@ -138,7 +148,7 @@ Run one replay first and read its `status.json`. A replay whose build is not in 
 result, not something to work around. Never fill, default or invent a value; never run a binary that is not registered.
 
 ## Known limits (today)
-- Only release-13.08 Swiftplay is verified. Patch 13.09 (Hush) is unsupported by the pinned vrfkit; its codename and ID are unknown.
+- Logic is verified only on release-13.08 Swiftplay. The 13.09 vrfkit exported all 7 Standard matches of the first cohort with 0 decode errors, but nothing downstream is verified on 13.09 Standard until a run is read. Hush's codename and ID are unknown.
 - `RoundInfos.StartOfRound*` is zero in the sample (money elsewhere is real). `characterUltimateUsed` over-reports about 50%.
 - Built as reference only (13.08 sample): the 15 groups in `parser/meta_tables.py`. Not built: per-hit damage and regions, kill weapon and assists, spike site and planter, ability lifecycle beyond cast and actor open/close, effect intervals, health and alive state, purchases, capability report, tests A to I.
 - Economy is not all zero: see `knowledge/Reference/Replay Data Guide.md` item 11.
