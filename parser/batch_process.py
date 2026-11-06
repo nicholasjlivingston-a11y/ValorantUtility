@@ -31,6 +31,40 @@ def sha256_file(path):
     return h.hexdigest()
 
 
+def repo_commit(here):
+    """Commit id of the code that ran. Colab runs a downloaded zip (no .git), so a COMMIT file in the package is the fallback."""
+    for p in (here / "COMMIT", here.parent / "COMMIT"):
+        if p.is_file():
+            return p.read_text().strip()[:40] or "unknown"
+    try:
+        p = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=here, capture_output=True, text=True)
+        if p.returncode == 0 and p.stdout.strip():
+            return p.stdout.strip()[:12]
+    except Exception:
+        pass
+    return "unknown (no git checkout and no COMMIT file)"
+
+
+def ensure_registered(vrfkit, registry_path, allow, label):
+    """Hash the binary and read the builds it contains from its own strings. Registers it when allowed.
+    Listing a build means the binary contains that build's definitions; it does not mean the output was verified."""
+    import re
+    data = Path(vrfkit).read_bytes()
+    sha = hashlib.sha256(data).hexdigest()
+    reg = json.load(open(registry_path))
+    if sha in reg.get("binaries", {}):
+        return sha, False
+    if not allow:
+        return sha, False
+    builds = sorted({b.decode() for b in re.findall(rb"release-1[0-9]\.[0-9]+", data)}, key=lambda x: tuple(int(i) for i in x.split("-")[1].split(".")))
+    if not builds:
+        return sha, False
+    reg.setdefault("binaries", {})[sha] = {"label": label, "bytes": len(data), "known_in_binary": builds, "thin_support": [],
+                                          "note": "SELF-REGISTERED at run time from the binary's own strings; output for these builds is not verified unless stated elsewhere"}
+    json.dump(reg, open(registry_path, "w"), indent=2)
+    return sha, True
+
+
 def run(cmd, cwd=None, log=None):
     t = time.time()
     p = subprocess.run([str(c) for c in cmd], cwd=cwd, capture_output=True, text=True)
@@ -62,7 +96,7 @@ def process(vrf: Path, a, work_root: Path):
                    "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "steps": {}, "overall": "failed",
                    "run_id": f"{mid[:8]}-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}",
                    "source_sha256": sha256_file(vrf), "vrfkit_sha256": sha256_file(a.vrfkit),
-                   "repo_commit": (run(["git", "rev-parse", "--short", "HEAD"], cwd=HERE, log=None)[1] or "").strip()[:12]}
+                   "repo_commit": repo_commit(HERE)}
 
     def step(name, cmd, cwd=None):
         rc, out = run(cmd, cwd, log)
@@ -81,6 +115,10 @@ def process(vrf: Path, a, work_root: Path):
         st["build"] = man.get("replay_build"); st["duration_s"] = round(man.get("duration_ms", 0) / 1000, 1)
         import re as _re
         m_ = _re.search(r"release-\d+\.\d+", st["build"] or "")
+        cfg = json.load(open(a.config)) if Path(a.config).is_file() else {}
+        _, newly = ensure_registered(a.vrfkit, a.registry, cfg.get("parser", {}).get("self_register_binary", False), "self-registered in " + str(HERE.name))
+        if newly:
+            st["vrfkit_self_registered"] = True
         reg = json.load(open(a.registry))["binaries"]
         sup = reg.get(st["vrfkit_sha256"])
         st["release"] = m_.group(0) if m_ else "UNKNOWN"
@@ -96,8 +134,9 @@ def process(vrf: Path, a, work_root: Path):
             return "unsupported_build", st
         if st["release"] in sup.get("thin_support", []):
             st["build_note"] = "build has thin vrfkit support (see data/vrfkit_supported_builds.json)"
-        if st["release"] != "release-13.08":
-            st["build_note"] = (st.get("build_note", "") + " shard logic validated only on release-13.08; check every number on this build").strip()
+        validated = [v.split()[0] for v in cfg.get("parser", {}).get("logic_validated_on", ["release-13.08"])]
+        if st["release"] not in validated:
+            st["build_note"] = (st.get("build_note", "") + f" shard and normalize logic validated only on {validated}; check every number on this build").strip()
         import pandas as pd
         act = pd.read_parquet(exp / "actors.parquet", columns=["class_path"])
         st["mode"] = "Swiftplay" if act.class_path.astype(str).str.contains("Swiftplay").any() else "Standard"
@@ -137,6 +176,26 @@ def process(vrf: Path, a, work_root: Path):
         if step("analytics_tables", mt_cmd):
             tm = json.load(open(od / "tables_manifest.json"))
             st["analytics_rows"] = {k: v["rows"] for k, v in tm["tables"].items()}
+        nm_cmd = [sys.executable, HERE / "normalize.py", exp, od, "--config", a.config, "--source-sha256", st["source_sha256"], "--run-id", st["run_id"], "--lookup", a.lookup]
+        if (od / "shard").exists():
+            nm_cmd += ["--shard", od / "shard"]
+        if step("normalize", nm_cmd):
+            try:
+                nj = json.load(open(od / "normalized" / "normalized_match.json"))
+                st["normalized"] = {k: nj.get(k) for k in ("rounds", "players", "team_basis", "movement_rows", "deaths", "unresolved_identities", "unresolved_utility", "sections_failed", "resolution_status")}
+                st["rounds"] = st.get("rounds") or nj.get("rounds")
+                if json.loads(nj.get("sections_failed") or "[]"):
+                    st["steps"]["normalize"]["note"] = "some sections failed; see normalized/parser_diagnostics.json"
+                core_skip = {"movement", "player_positions", "replicated_fields", "utility_object_observations", "event_provenance_index"}
+                with zipfile.ZipFile(od / "normalized_core.zip", "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
+                    for f_ in sorted((od / "normalized").iterdir()):
+                        if f_.stem not in core_skip:
+                            z.write(f_, f"{mid}/{f_.name}")
+                st["normalized_core_zip_bytes"] = (od / "normalized_core.zip").stat().st_size
+            except Exception as e:
+                st["steps"]["normalize"]["note"] = f"summary failed: {e}"
+        if (w / "owner_resolution.json").exists():
+            st["owner_resolution"] = json.load(open(w / "owner_resolution.json"))
         if not a.no_zip:
             zp = od / "export.zip"
             with zipfile.ZipFile(zp, "w", zipfile.ZIP_DEFLATED, compresslevel=1) as z:
@@ -145,10 +204,12 @@ def process(vrf: Path, a, work_root: Path):
                         z.write(f, f"{mid}/{f.name}")
             st["export_zip_bytes"] = zp.stat().st_size
             st["steps"]["zip"] = {"ok": True}
-        st["overall"] = ("ok" if st["steps"].get("shard", {}).get("ok") else
-                         "failed_check" if (od / "shard_FAILED_CHECK").exists() else "export_only")
+        norm_ok = st["steps"].get("normalize", {}).get("ok", False)
+        st["overall"] = ("ok" if st["steps"].get("shard", {}).get("ok") and norm_ok else
+                         "failed_check" if (od / "shard_FAILED_CHECK").exists() else
+                         "normalized_only" if norm_ok else "export_only")
         if st["mode"] != "Swiftplay":
-            st["warning"] = "standard-mode shard logic is untested; check the numbers before trusting them"
+            st["warning"] = "standard-mode shard logic is validated only through the invariant checks below; read status.json checks before trusting numbers"
         return st["overall"], st
     except Exception as e:  # keep the batch alive
         import traceback
@@ -168,9 +229,10 @@ def main():
     ap.add_argument("--work", default="/tmp/valosaber_work"); ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--only", nargs="+", default=None, help="process only these replay names (file name or stem)")
     ap.add_argument("--registry", default=str(HERE.parent / "data" / "vrfkit_supported_builds.json"))
+    ap.add_argument("--config", default=str(HERE / "pipeline_config.json"))
     ap.add_argument("--force", action="store_true"); ap.add_argument("--no-zip", action="store_true")
     a = ap.parse_args()
-    for k in ("replays", "outbox", "vrfkit", "lookup", "work", "registry"):  # steps run in other folders, so paths must be absolute
+    for k in ("replays", "outbox", "vrfkit", "lookup", "work", "registry", "config"):  # steps run in other folders, so paths must be absolute
         setattr(a, k, str(Path(getattr(a, k)).resolve()))
     vrfs = sorted(p for p in Path(a.replays).glob("*.vrf"))
     if not vrfs:
@@ -202,7 +264,7 @@ def main():
     for sp in sorted(Path(a.outbox).glob("*/status.json")):
         s = json.load(open(sp))
         rows.append({k: s.get(k) for k in ("match_id", "overall", "mode", "build", "rounds", "duration_s", "source_sha256", "vrfkit_sha256", "repo_commit", "source_bytes",
-                                            "export_bytes", "shard_bytes", "export_zip_bytes", "warning", "note")})
+                                            "export_bytes", "shard_bytes", "normalized_core_zip_bytes", "export_zip_bytes", "warning", "note")})
     if rows:
         with open(Path(a.outbox) / "batch_report.csv", "w", newline="") as f:
             wr = csv.DictWriter(f, fieldnames=list(rows[0])); wr.writeheader(); wr.writerows(rows)

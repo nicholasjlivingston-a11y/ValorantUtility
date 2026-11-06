@@ -68,7 +68,21 @@ HALF_FIRST = {0} | {min(i for i, t in starts.items() if t >= x) for x in _sw}
 print("first-round-of-half indices:", sorted(HALF_FIRST))
 
 
+# Barrier drop is OBSERVED: the first ClientBuyPhaseEnd field inside each round window. Only rounds without one
+# fall back to the fixed 30 s / 45 s guess (and are counted in the printed summary).
+_bp = np.sort(f[f["field_name"].astype(str).str.contains("ClientBuyPhaseEnd")]["time_ms"].to_numpy())
+_obs = {}
+for _i, _t in starts.items():
+    _x = _bp[(_bp >= _t) & (_bp < starts.get(_i + 1, 10 ** 12))]
+    if len(_x):
+        _obs[_i] = int(_x[0]) - int(_t)
+print(f"barrier drop observed for {len(_obs)} of {len(starts)} rounds (rest use the fixed fallback)")
+
+
 def barrier_offset(r):
+    if r in _obs:
+        return _obs[r]
+    # fallback only
     return 45000 if r in HALF_FIRST else 30000
 
 

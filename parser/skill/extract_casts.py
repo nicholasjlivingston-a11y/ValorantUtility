@@ -166,7 +166,7 @@ def run(fields_path, actors_path):
         destroyed = c["attrs"].get("DestroyedCount")
         cx, cy, cz = parse_vec(c["attrs"].get("CastLocation"))
         if not c["effects"]:
-            rows.append(dict(cast_uid=uid, agent=agent, caster=player,
+            rows.append(dict(cast_uid=uid, actor_net_guid=c["actor"], cast_idx=c["cast_idx"], effect_idx=None, target_idx=None, agent=agent, caster=player,
                              round=rnd, slot=slot, round_phase=phase,
                              cast_time_s=ctime, cast_x=cx, cast_y=cy, cast_z=cz,
                              destroyed_count=destroyed, tag=None, tag_id=None,
@@ -181,7 +181,7 @@ def run(fields_path, actors_path):
             etime = e.get("Time")
             tgts = e.get("targets", {})
             if not tgts:
-                rows.append(dict(cast_uid=uid, agent=agent, caster=player,
+                rows.append(dict(cast_uid=uid, actor_net_guid=c["actor"], cast_idx=c["cast_idx"], effect_idx=ei, target_idx=None, agent=agent, caster=player,
                                  round=rnd, slot=slot, round_phase=phase,
                                  cast_time_s=ctime, cast_x=cx, cast_y=cy, cast_z=cz,
                                  destroyed_count=destroyed, tag=tag, tag_id=tag_id,
@@ -190,7 +190,7 @@ def run(fields_path, actors_path):
             else:
                 for ti in sorted(tgts):
                     t = tgts[ti]
-                    rows.append(dict(cast_uid=uid, agent=agent, caster=player,
+                    rows.append(dict(cast_uid=uid, actor_net_guid=c["actor"], cast_idx=c["cast_idx"], effect_idx=ei, target_idx=ti, agent=agent, caster=player,
                                      round=rnd, slot=slot, round_phase=phase,
                                      cast_time_s=ctime, cast_x=cx, cast_y=cy, cast_z=cz,
                                      destroyed_count=destroyed, tag=tag, tag_id=tag_id,

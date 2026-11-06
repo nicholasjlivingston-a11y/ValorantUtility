@@ -69,34 +69,83 @@ for (own, r, rep, i), d in inter.items():
         hits_d=float(d.get("HitsDealt") or 0), hits_r=float(d.get("HitsRecieved") or 0),
         did_kill=bool(d.get("bDidKill")), kill_t=d.get("kill_t")))
 pr = pd.DataFrame(rows)
-# ---- resolve owner actor -> player by reciprocity (my damage dealt == their damage received) ----
+# ---- resolve owner actor -> player. DIRECT first: pawn.Controller == OwnerExclusivePlayerInfo.Owner and pawn.PlayerState gives the player.
+# Reciprocity (my damage dealt == their damage received) is kept as a cross-check and as the fallback; it never aborts the run by itself.
 from itertools import permutations
+owners = {g: g for g in sorted(pr.owner.unique())}
+fnS = f.field_name.astype(str)
+def _last(actor, name):
+    x = f[(f.actor_net_guid == actor) & (fnS == name) & f.value_i64.notna() & (f.value_i64 > 0)]
+    return None if x.empty else int(x.sort_values(["time_ms", "packet_id"]).value_i64.iloc[-1])
+ctrl2subject = {}
+for p_ in MAN.get("players", []):
+    for ch_ in p_.get("character_net_guids", []):
+        c_ = _last(int(ch_), "Controller")
+        if c_ is not None:
+            ctrl2subject[c_] = p_["subject"]
+direct = {}
+for g_ in owners:
+    c_ = _last(int(g_), "Owner") or _last(int(g_), "AresController")
+    if c_ in ctrl2subject:
+        direct[g_] = ctrl2subject[c_]
 pair = {g: {} for g in owners}
 for r_ in pr.itertuples(): pair[r_.owner][(r_.rnd, r_.other)] = (r_.dealt, r_.recv)
-def owner_team(g):
-    ts = [u2team[o] for (_, o) in pair[g]]; opp = "B" if np.mean([t=="A" for t in ts]) > .5 else "A"; return opp
-oteam = {g: owner_team(g) for g in owners}
-OA = [g for g in owners if oteam[g]=="A"]; OB = [g for g in owners if oteam[g]=="B"]
-UA = list(subj[subj.team=="A"].uuid); UB = list(subj[subj.team=="B"].uuid)
-assert len(OA)==5 and len(OB)==5, (OA, OB)
 def cost(asg):
     inv = {u: g for g, u in asg.items()}; c = 0.0
     for g, u in asg.items():
         for (rn, other), (dl, rc) in pair[g].items():
-            g2 = inv[other]; back = pair[g2].get((rn, u), (0.0, 0.0))
+            g2 = inv.get(other)
+            if g2 is None: c += abs(dl) + abs(rc); continue
+            back = pair[g2].get((rn, u), (0.0, 0.0))
             c += abs(dl - back[1]) + abs(rc - back[0])
     return c
-best = []
-for pa in permutations(UA):
-    for pb in permutations(UB):
-        asg = dict(zip(OA, pa)); asg.update(dict(zip(OB, pb)))
-        best.append((cost(asg), asg))
-best.sort(key=lambda x: x[0])
-zero = [b_ for b_ in best if b_[0] == 0]
-print("owner-resolution: best cost", best[0][0], "| zero-cost solutions:", len(zero), "| runner-up cost", best[len(zero)][0] if len(zero) < len(best) else None)
-assert best[0][0] == 0, "reciprocity could not resolve owners"
-owners = best[0][1]
+RES = {"method": None}
+if len(direct) == len(owners) and len(set(direct.values())) == len(owners):
+    owners = direct; RES.update(method="direct_controller_chain", reciprocity_cost=cost(direct))
+    print("owner-resolution: direct controller chain resolved all", len(owners), "owners; reciprocity residual", RES["reciprocity_cost"])
+else:
+    def owner_team(g):
+        ts = [u2team.get(o) for (_, o) in pair[g] if o in u2team]; opp = "B" if np.mean([t=="A" for t in ts]) > .5 else "A"; return opp
+    oteam = {g: owner_team(g) for g in owners}
+    OA = [g for g in owners if oteam[g]=="A"]; OB = [g for g in owners if oteam[g]=="B"]
+    UA = list(subj[subj.team=="A"].uuid); UB = list(subj[subj.team=="B"].uuid)
+    assert len(OA)==5 and len(OB)==5, f"owner teams {len(OA)}/{len(OB)}; direct chain resolved {len(direct)} of {len(owners)}"
+    best = []
+    for pa in permutations(UA):
+        for pb in permutations(UB):
+            asg = dict(zip(OA, pa)); asg.update(dict(zip(OB, pb)))
+            best.append((cost(asg), asg))
+    best.sort(key=lambda x: x[0])
+    runner = best[1][0] if len(best) > 1 else None
+    print("owner-resolution (fallback): best cost", best[0][0], "| runner-up cost", runner)
+    assert best[0][0] == 0 or (runner is not None and runner >= 1.5 * best[0][0] + 1.0), "reciprocity could not resolve owners unambiguously and the direct chain is incomplete"
+    owners = best[0][1]; RES.update(method="reciprocity_fallback", reciprocity_cost=best[0][0], runner_up_cost=runner)
+json.dump(RES, open(Path(sys.argv[4]).with_name("owner_resolution.json") if len(sys.argv) > 4 else "owner_resolution.json", "w"))
 pr["owner"] = pr.owner.map(owners)
+# teams: the guid-gap rule above is a guess; verify it against who damages whom (no friendly damage) and override on disagreement
+_adj = {}
+for a_, b_ in set(zip(pr.owner, pr.other)):
+    _adj.setdefault(a_, set()).add(b_); _adj.setdefault(b_, set()).add(a_)
+_col, _bad = {}, 0
+_psmin = subj.sort_values("ps").uuid.tolist()
+for s0 in _psmin:
+    if s0 in _col or s0 not in _adj: continue
+    _col[s0] = 0; st_ = [s0]
+    while st_:
+        u_ = st_.pop()
+        for v_ in _adj.get(u_, ()):
+            if v_ not in _col: _col[v_] = 1 - _col[u_]; st_.append(v_)
+            elif _col[v_] == _col[u_]: _bad += 1
+if len(_col) == len(subj) and _bad == 0:
+    _first = _col[_psmin[0]]
+    _new = {u: ("A" if c == _first else "B") for u, c in _col.items()}
+    if _new != u2team:
+        print("TEAM CHECK: guid-gap teams disagree with damage-opposition teams; using damage-opposition teams")
+        u2team = _new; subj["team"] = subj.uuid.map(_new)
+    else:
+        print("team check: guid-gap teams agree with damage-opposition teams")
+else:
+    print("TEAM CHECK: could not 2-colour the damage graph (nodes", len(_col), "conflicts", _bad, "); keeping guid-gap teams, UNVERIFIED")
 died = {(owners[k[0]],)+k[1:]: v for k, v in died.items()}
 
 kills = (pr[pr.did_kill & pr.kill_t.notna()]

@@ -1,0 +1,112 @@
+{
+  "_comment": "Single configuration for run_pipeline.py / normalize.py. Paths may be overridden on the command line. Nothing here changes what is observed; thresholds only decide what gets FLAGGED.",
+  "schema_version": "norm-1",
+  "paths": {
+    "replays_dir": "replays",
+    "outbox_dir": "outbox",
+    "work_dir": "/tmp/valosaber_work",
+    "vrfkit": "bin/vrfkit",
+    "name_lookup": "data/name_lookup_build13_08.json",
+    "agent_classes": "data/agent_classes.json",
+    "codenames": "parser/skill/codenames.json",
+    "build_registry": "data/vrfkit_supported_builds.json",
+    "map_registry": "config/map_registry.json"
+  },
+  "parser": {
+    "vrfkit_expected_version": "0.3.x",
+    "vrfkit_pinned_sha256_file": "parser/vrfkit.sha256",
+    "self_register_binary": true,
+    "self_register_note": "A binary missing from the registry is registered from its own strings (hash + every release-NN.NN it contains) and the run records that it was self-registered. A replay build the binary does not contain is still refused."
+  },
+  "normalize": {
+    "death_to_hit_tolerance_ms": 50,
+    "event_field_window_ms": 50,
+    "position_gap_ms": 500,
+    "position_max_speed_units_per_s": 3000,
+    "position_max_step_units": 1500,
+    "position_max_dt_for_velocity_ms": 500,
+    "barrier_fallback_ms": {
+      "default": 30000,
+      "first_round_of_half": 45000
+    },
+    "utility_cast_link_window_ms": 3000,
+    "utility_class_regex": "^(Projectile_|GameObject_|Pawn_|Ability_)(?!Melee)",
+    "field_patterns_replicated": {
+      "ownership": [
+        "^Owner$",
+        "^Instigator$",
+        "^Controller$",
+        "^PossessedCharacter$",
+        "^Possessed$",
+        "^PlayerState$"
+      ],
+      "spike": [
+        "^BombState$",
+        "BombLocation",
+        "^DefuseProgress$",
+        "^CurrentDefuser$",
+        "^BombDefuseState$",
+        "^BombHasBeenDefused$",
+        "^PlantedAtSite$",
+        "PreventPickupCharacter",
+        "PlayBombPickedUpAudio"
+      ],
+      "phase": [
+        "NewPhase",
+        "OldPhase",
+        "^Phase$",
+        "ClientBuyPhaseEnd"
+      ],
+      "statistics": [
+        "^AbilityCastsThisRound$"
+      ]
+    },
+    "statistic_semantics": {
+      "AbilityCastsThisRound": {
+        "kind": "snapshot_array_size",
+        "resets_by_round": true,
+        "cumulative": false
+      },
+      "default": {
+        "kind": "unknown",
+        "resets_by_round": null,
+        "cumulative": null
+      }
+    },
+    "effect_category": {
+      "EnemiesBlinded": "blind",
+      "AlliesBlinded": "blind",
+      "EnemiesDazed": "daze",
+      "EnemiesDisplaced": "displacement",
+      "EnemiesRevealed": "reveal",
+      "EnemiesSpotted": "reveal",
+      "EnemiesBlocked": "vision_block",
+      "EnemiesNearsighted": "nearsight",
+      "EnemiesSlowed": "slow",
+      "EnemiesSuppressed": "suppression",
+      "EnemiesMarked": "mark",
+      "EnemiesVulnerabled": "mark",
+      "EnemiesSeized": "seize",
+      "AlliesConcussed": "concuss",
+      "AlliesStimmed": "stim",
+      "AlliesHealed": "healing",
+      "HealingDone": "healing",
+      "DamageDealt": "damage",
+      "DamageReceived": "damage",
+      "UtilDestroyed": "destruction",
+      "BoostKills": "kill_credit",
+      "Kills": "kill_credit",
+      "DebuffResisted": "status_resisted"
+    },
+    "provenance_table_level_only": [
+      "movement",
+      "player_positions",
+      "utility_object_observations",
+      "utility_statistics",
+      "replicated_fields",
+      "netguid_mappings",
+      "actor_lifecycle",
+      "position_anomalies"
+    ]
+  }
+}

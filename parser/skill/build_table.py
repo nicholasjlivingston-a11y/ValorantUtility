@@ -60,7 +60,21 @@ starts = {i: t for i, t in
           enumerate(ev[ev["group"] == "roundStarted"].sort_values("time1")["time1"])}
 
 
+# Barrier drop is OBSERVED: the first ClientBuyPhaseEnd field inside each round window. Only rounds without one
+# fall back to the fixed 30 s / 45 s guess (and are counted in the printed summary).
+_bp = np.sort(f[f["field_name"].astype(str).str.contains("ClientBuyPhaseEnd")]["time_ms"].to_numpy())
+_obs = {}
+for _i, _t in starts.items():
+    _x = _bp[(_bp >= _t) & (_bp < starts.get(_i + 1, 10 ** 12))]
+    if len(_x):
+        _obs[_i] = int(_x[0]) - int(_t)
+print(f"barrier drop observed for {len(_obs)} of {len(starts)} rounds (rest use the fixed fallback)")
+
+
 def barrier_offset(r):
+    if r in _obs:
+        return _obs[r]
+    # fallback only
     return 45000 if r in (0, 12) else 30000
 
 
